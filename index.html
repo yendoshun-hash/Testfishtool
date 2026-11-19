@@ -128,6 +128,7 @@ body{padding:0}
  <div class="photo" id="pv">写真なし</div>
  <input id="f_photo" type="file" accept="image/*" hidden>
  <div class="row" style="margin-top:8px"><button id="bPhoto" class="pri">📷 写真を選ぶ・撮る</button><button id="bPhotoDel" class="ghost">写真を外す</button></div>
+ <button id="bOrig" class="ghost" style="width:100%;margin-top:8px" hidden>📥 元の写真を「写真」アプリに保存</button>
  <label for="f_sp">魚種名</label>
  <input id="f_sp" list="spList" placeholder="例：ガーラ、ミーバイ" autocomplete="off"><datalist id="spList"></datalist>
  <div class="row" style="margin-top:8px"><a id="bLens" class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/imghp?hl=ja">🔍 Google画像検索で調べる</a></div>
@@ -340,7 +341,7 @@ const dir16=d=>DIRS[Math.round(d/22.5)%16];
 
 /* ---------- 状態 ---------- */
 let env={lat:null,lon:null,place:'',muni:'',portTxt:'',wx:'',temp:'',windTxt:'',wave:'',sst:'',tideTxt:'',hours:[]};
-let cfg={port:'auto',off:0,v:2},records=[],cur=null,photo=null,printing=false,printed=[];
+let cfg={port:'auto',off:0,v:2},records=[],cur=null,photo=null,orig=null,printing=false,printed=[];
 
 function curPort(){let i=0;if(cfg.port!=='auto')i=+cfg.port;else if(env.lat!=null){let b=1e9;PORTS.forEach((p,k)=>{const d=dist(env.lat,env.lon,p[1],p[2]);if(d<b){b=d;i=k}})}return mkPort(PORTS[i])}
 const setSt=m=>$('#st').textContent=m;
@@ -463,7 +464,7 @@ function setTk(k,v){const sel=$('#t_'+k),o=$('#t_'+k+'_o'),opts=[...sel.options]
 function getTk(k){const v=$('#t_'+k).value;return v==='__o'?$('#t_'+k+'_o').value.trim():v}
 const F=['sp','size','cnt','ts','place','port','wx','temp','wind','wave','sst','tide','memo'];
 function openForm(r){
- cur=r||null;photo=r?r.photo||null:null;
+ cur=r||null;photo=r?r.photo||null:null;orig=null;$('#bOrig').hidden=true;
  const v=r||{ts:Date.now(),species:'',size:'',count:'',place:env.place,port:env.portTxt,wx:env.wx,temp:env.temp,wind:env.windTxt,wave:env.wave,sst:env.sst,tide:env.tideTxt,memo:''};
  $('#f_sp').value=v.species;$('#f_size').value=v.size;$('#f_cnt').value=v.count;$('#f_ts').value=toLocalIn(v.ts);
  $('#f_place').value=v.place||'';$('#f_port').value=v.port||'';$('#f_wx').value=v.wx||'';$('#f_temp').value=v.temp??'';$('#f_wind').value=v.wind||'';
@@ -520,8 +521,9 @@ $('#bRef').onclick=refresh;$('#bNew').onclick=()=>openForm();$('#bSet').onclick=
 $('#fBack').onclick=()=>show('home');$('#sBack').onclick=()=>show('home');$('#pBack').onclick=()=>show('home');
 $('#list').onclick=ev=>{const b=ev.target.closest('.item');if(b)openForm(records.find(r=>r.id===+b.dataset.id))};
 $('#bPhoto').onclick=()=>$('#f_photo').click();
-$('#f_photo').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{photo=await resizeImg(f);showPhoto()}catch(x){alert(x.message)}ev.target.value=''};
-$('#bPhotoDel').onclick=()=>{photo=null;showPhoto()};
+$('#f_photo').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{photo=await resizeImg(f);orig=f;$('#bOrig').hidden=false;showPhoto()}catch(x){alert(x.message)}ev.target.value=''};
+$('#bPhotoDel').onclick=()=>{photo=null;orig=null;$('#bOrig').hidden=true;showPhoto()};
+$('#bOrig').onclick=async()=>{if(!orig)return;try{if(navigator.canShare&&navigator.canShare({files:[orig]}))await navigator.share({files:[orig]});else alert('この環境では共有メニューが使えません。標準のカメラで撮影してから、ライブラリで選んでください。')}catch(x){if(x.name!=='AbortError')alert('共有できませんでした：'+x.message)}};
 const lensUp=()=>{const q=$('#f_sp').value.trim();$('#bLens').href=q?`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q+' 魚')}`:'https://www.google.com/imghp?hl=ja'};$('#f_sp').addEventListener('input',lensUp);
 $('#chips').onclick=ev=>{const c=ev.target.dataset.c;if(!c)return;const m=$('#f_memo');m.value+=(m.value&&!/\s$/.test(m.value)?' ':'')+c+' '};
 $('#bSave').onclick=save;
@@ -551,7 +553,7 @@ $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$(
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-19p';
+const VER='2026-11-19q';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};

@@ -109,7 +109,7 @@ body{padding:0}
  <div class="card"><h2>現在地</h2><div id="loc" class="big">—</div><div id="loc2" class="sub"></div>
   <div class="row" style="margin-top:10px"><a id="jma" class="btn warn" target="_blank" rel="noopener" href="https://www.jma.go.jp/bosai/warning/">⚠ 気象庁 注意報・警報を見る</a></div></div>
  <div class="card"><h2>気象・海象</h2><div id="wx" class="sub">取得待ち…</div><div id="hours" class="hours"></div></div>
- <div class="card tide"><h2>潮汐（簡易推算）</h2><div id="td" class="big">—</div><div id="td2" class="sub" style="color:#b9ccd6"></div><div class="nx" id="tdn"></div><div id="tdc"></div><small id="tdp"></small><a id="tdl" class="btn ghost" target="_blank" rel="noopener" href="https://www.data.jma.go.jp/kaiyou/db/tide/suisan/" style="width:100%;margin-top:10px;color:#fff;border-color:#ffffff66">📖 気象庁の潮位表</a></div>
+ <div class="card tide"><h2>潮汐（簡易推算）</h2><div id="td" class="big">—</div><div id="td2" class="sub" style="color:#b9ccd6"></div><div class="nx" id="tdn"></div><div id="tdc"></div><small id="tdp"></small><small id="tdo"></small><a id="tdl" class="btn ghost" target="_blank" rel="noopener" href="https://www.data.jma.go.jp/kaiyou/db/tide/suisan/" style="width:100%;margin-top:10px;color:#fff;border-color:#ffffff66">📖 気象庁の潮位表</a></div>
  <div class="sec"><h2>記録一覧</h2><button id="bPrint" class="ghost" style="min-height:44px">🖨 PDF出力</button></div>
  <div id="list"></div>
 </main>
@@ -361,6 +361,8 @@ function renderTide(){
  const path=pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join('');
  const marks=ex.filter(x=>x.t>a&&x.t<b).map(x=>`<circle cx="${X(x.t).toFixed(1)}" cy="${Y(tideH(P,x.t,off)).toFixed(1)}" r="3" fill="#f0b429"/><text x="${X(x.t).toFixed(1)}" y="${x.type==='H'?Y(tideH(P,x.t,off))-6:Y(tideH(P,x.t,off))+14}" font-size="10" fill="#fff" text-anchor="middle">${hm(x.t)}</text>`).join('');
  $('#tdc').innerHTML=`<svg viewBox="0 0 340 74" role="img" aria-label="今後24時間の潮位曲線"><path d="${path}" fill="none" stroke="#7fd1c9" stroke-width="2.5"/><line x1="${X(now).toFixed(1)}" x2="${X(now).toFixed(1)}" y1="2" y2="66" stroke="#f0b429" stroke-dasharray="3 3"/>${marks}</svg>`;
+ const om=(env.om||[]).filter(x=>x.t>now),oh=om.find(x=>x.type==='H'),ol=om.find(x=>x.type==='L');
+ $('#tdo').textContent=oh||ol?`参考（Open-Meteo海面高度モデル・1時間刻み）：次の満潮 ${oh?hm(oh.t):'—'}／干潮 ${ol?hm(ol.t):'—'}`:'';
  $('#tdp').textContent=`基準：${P.n}（気象庁の調和定数による推算・目安）${off?`／補正${off>0?'+':''}${off}分`:''}`;
  $('#tdl').href=$('#s_jma').href=jmaURL(P.code);$('#tdl').textContent='📖 気象庁の潮位表（'+P.n+'）を開く';$('#s_jma').textContent='📖 気象庁の潮位表（'+P.n+'・今日から3日分）を開く';
 }
@@ -390,11 +392,14 @@ async function refresh(){
  (async()=>{ // 天気＋海象
   const [a,b]=await Promise.allSettled([
    J(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,weather_code,precipitation_probability&wind_speed_unit=ms&timezone=auto&forecast_days=2`),
-   J(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&current=wave_height,sea_surface_temperature&timezone=auto`)]);
+   J(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&current=wave_height,sea_surface_temperature&hourly=sea_level_height_msl&forecast_days=2&timezone=auto`)]);
   const w={icon:'❔',label:'—',temp:'—',dir:'—',spd:'—',wave:'—',sst:'—'};
   if(a.status==='fulfilled'){const c=a.value.current,[ic,lb]=wxInfo(c.weather_code);Object.assign(w,{icon:ic,label:lb,temp:c.temperature_2m.toFixed(1),dir:dir16(c.wind_direction_10m),spd:c.wind_speed_10m.toFixed(1)});
    const H=a.value.hourly,cut=c.time.slice(0,13);let i=H.time.findIndex(t=>t.slice(0,13)>=cut);if(i<0)i=0;
    env.hours=H.time.slice(i,i+24).map((t,k)=>({t:t.slice(11,16),icon:wxInfo(H.weather_code[i+k])[0],temp:Math.round(H.temperature_2m[i+k]),pop:H.precipitation_probability[i+k]??'—'}))}
+  if(b.status==='fulfilled'&&b.value.hourly&&b.value.hourly.sea_level_height_msl){const T=b.value.hourly.time,Y=b.value.hourly.sea_level_height_msl,ex=[];
+   for(let i=1;i<Y.length-1;i++){if(Y[i]==null||Y[i-1]==null||Y[i+1]==null)continue;const hi=Y[i]>Y[i-1]&&Y[i]>=Y[i+1],lo=Y[i]<Y[i-1]&&Y[i]<=Y[i+1];
+    if(hi||lo){const d=Y[i-1]-2*Y[i]+Y[i+1],dx=d?0.5*(Y[i-1]-Y[i+1])/d:0;ex.push({t:new Date(T[i]).getTime()+dx*36e5,type:hi?'H':'L'})}}env.om=ex}
   if(b.status==='fulfilled'&&b.value.current){const c=b.value.current;if(c.wave_height!=null)w.wave=c.wave_height.toFixed(1);if(c.sea_surface_temperature!=null)w.sst=c.sea_surface_temperature.toFixed(1)}
   if(a.status!=='fulfilled'){env.wxErr='気象データを取得できませんでした：'+(a.reason&&a.reason.message||'通信エラー')+'（HTTPSで開いているか確認してください）'}
   env.w=a.status==='fulfilled'||b.status==='fulfilled'?w:null;
@@ -504,6 +509,9 @@ $('#pN').onchange=buildPrint;$('#pGo').onclick=doPrint;$('#pDone').onclick=askCl
 $('#mKeep').onclick=()=>{$('#mDone').classList.remove('on');show('home')};
 $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$('#mDone').classList.remove('on');await renderList();show('home')};
 
+/* ---------- 外部リンクは新しい画面で開く ---------- */
+document.addEventListener('click',ev=>{const a=ev.target.closest('a[target="_blank"]');if(!a)return;ev.preventDefault();
+ const w=window.open(a.href,'_blank');if(w){try{w.opener=null}catch(x){}}else{location.assign(a.href)}});
 /* ---------- 起動 ---------- */
 (async()=>{
  tick();setInterval(tick,1000);

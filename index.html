@@ -73,7 +73,7 @@ details{border-top:1px solid var(--line);padding:8px 0}summary{font-weight:700;m
 .ph{display:flex;align-items:baseline;gap:3mm;border-bottom:.4mm solid var(--ink);padding-bottom:1.2mm}
 .ph .no{font:700 10px var(--sans);color:#fff;background:var(--ink);padding:.4mm 2mm}.ph h3{flex:1;margin:0;font:700 20px/1.2 var(--serif)}.ph .dt{font-size:11px;font-variant-numeric:tabular-nums}
 .pb{display:flex;gap:3mm;flex:1;min-height:0}
-.pi{flex:0 0 42%;background:var(--foam);display:grid;place-items:center;overflow:hidden;border:.3mm solid var(--ink);min-height:40mm}.pi img{width:100%;height:100%;object-fit:cover}.pi i{font-size:11px;color:#6b8290}
+.pi{flex:0 0 42%;position:relative;background:var(--foam);overflow:hidden;border:.3mm solid var(--ink);min-height:40mm}.pi img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block}.pi i{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:#6b8290}
 .pb dl{flex:1;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:1mm 2.5mm;align-content:start}
 .pb dl div{border-bottom:.2mm solid var(--line);padding-bottom:.6mm;min-width:0;display:flex;gap:1.5mm;align-items:baseline}.pb dt{flex:none}.pb dl .w{grid-column:span 2}
 .pb dt{font-size:9px;color:var(--sea);font-weight:700}.pb dd{margin:0;font-size:12px;overflow-wrap:anywhere;line-height:1.3}
@@ -489,7 +489,7 @@ function buildPrint(){
  $('#pa').innerHTML=h;
 }
 function openPrint(){if(!records.length){alert('出力できる記録がありません。');return}buildPrint();show('prt')}
-function doPrint(){printing=true;buildPrint();setTimeout(()=>window.print(),50)}
+async function doPrint(){printing=true;buildPrint();try{await Promise.all([...document.querySelectorAll('#pa img')].map(i=>i.decode?i.decode().catch(()=>{}):0))}catch(x){}setTimeout(()=>window.print(),150)}
 function askClear(){$('#mDone').classList.add('on')}
 window.addEventListener('afterprint',()=>{if(printing){printing=false;if($('#prt').classList.contains('on'))askClear()}});
 
@@ -536,7 +536,7 @@ $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$(
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-19i';
+const VER='2026-11-19j';
 async function checkUpdate(manual){try{const r=await fetch(location.pathname+'?c='+Date.now(),{cache:'no-store'}),t=await r.text(),m=t.match(/const VER='([^']+)'/);
  if(m&&m[1]!==VER){$('#updv').textContent=m[1];$('#upd').hidden=false;if(manual)alert('新しいバージョン（'+m[1]+'）があります。ホーム画面上部の「今すぐ更新」を押してください。')}else if(manual)alert('最新版です（'+VER+'）。')}
  catch(x){if(manual)alert('確認できませんでした。通信状況を確認してください。')}}

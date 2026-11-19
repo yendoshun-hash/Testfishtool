@@ -165,7 +165,8 @@ body{padding:0}
   <div class="row" style="margin-top:8px"><button id="bExp" class="pri">書き出し</button><button id="bImp">読み込み</button></div>
   <input id="impf" type="file" accept="application/json,.json" hidden>
   <button id="bPers" class="ghost" style="width:100%;margin-top:8px">ブラウザに永続保存を要求</button>
-  <button id="bPrint2" class="ghost" style="width:100%;margin-top:8px">🖨 釣果をPDF出力（印刷）</button></div>
+  <button id="bPrint2" class="ghost" style="width:100%;margin-top:8px">🖨 釣果をPDF出力（印刷）</button>
+  <button id="bAll" class="warn" style="width:100%;margin-top:8px">🗑 全記録を削除</button></div>
  <div class="card"><h2>iPhoneショートカット連携ガイド</h2>
   <details open><summary>レシピ1：釣行スタートセット</summary>
    <p class="hint">アプリ起動・画面を最大の明るさ・低電力モードOFFをワンタップで実行します。</p>
@@ -203,6 +204,7 @@ body{padding:0}
 </section>
 
 <div class="mask" id="mDone"><div class="modal"><h3>出力が完了しました</h3><p>蓄積された釣果記録をクリアしますか？</p><p class="hint">クリアすると、出力した記録がこの端末から削除されます。心配な場合は先にバックアップを。</p><button id="mBk">先にバックアップを書き出す</button><button id="mClr" class="warn">クリアする（削除）</button><button id="mKeep" class="pri">残す（保持）</button></div></div>
+<div class="mask" id="mAll"><div class="modal"><h3>全記録を削除しますか？</h3><p id="mAllT"></p><p class="hint">削除すると元に戻せません。必要なら先にバックアップを書き出してください。</p><button id="mAllBk">先にバックアップを書き出す</button><button id="mAllY" class="warn">すべて削除する</button><button id="mAllN" class="pri">やめる</button></div></div>
 <div class="mask" id="mDel"><div class="modal"><h3>この記録を削除しますか？</h3><button id="mDelY" class="warn">削除する</button><button id="mDelN">やめる</button></div></div>
 
 <script>
@@ -511,6 +513,9 @@ $('#bExp').onclick=exportJSON;$('#mBk').onclick=exportJSON;
 $('#bImp').onclick=()=>$('#impf').click();
 $('#impf').onchange=ev=>{if(ev.target.files[0])importJSON(ev.target.files[0]);ev.target.value=''};
 $('#bPers').onclick=async()=>{try{const ok=navigator.storage&&navigator.storage.persist?await navigator.storage.persist():false;alert(ok?'永続保存が許可されました。':'永続保存は許可されませんでした。ホーム画面に追加し、バックアップを併用してください。')}catch(x){alert('この環境では利用できません。')}};
+$('#bAll').onclick=()=>{if(!records.length){alert('削除できる記録がありません。');return}$('#mAllT').textContent=`保存中の ${records.length} 件の記録（写真を含む）をすべて削除します。`;$('#mAll').classList.add('on')};
+$('#mAllN').onclick=()=>$('#mAll').classList.remove('on');$('#mAllBk').onclick=exportJSON;
+$('#mAllY').onclick=async()=>{try{await tx('rec','readwrite',st=>st.clear())}catch(x){alert('削除に失敗しました：'+x.message);return}$('#mAll').classList.remove('on');await renderList();alert('すべての記録を削除しました。')};
 $('#bPrint').onclick=openPrint;$('#bPrint2').onclick=()=>{show('home');openPrint()};
 $('#pN').onchange=buildPrint;$('#pGo').onclick=doPrint;$('#pDone').onclick=askClear;
 $('#mKeep').onclick=()=>{$('#mDone').classList.remove('on');show('home')};
@@ -519,7 +524,7 @@ $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$(
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-19f';
+const VER='2026-11-19g';
 /* ---------- 起動 ---------- */
 (async()=>{
  tick();setInterval(tick,1000);$('#ver').textContent=$('#ver2').textContent='アプリのバージョン：'+VER;

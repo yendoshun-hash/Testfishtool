@@ -163,6 +163,9 @@ body{padding:0}
   <label for="s_hi">次の満潮時刻</label><input id="s_hi" type="time"><p class="hint" id="s_hi_note"></p><button id="s_cal" style="width:100%;margin-top:4px">この満潮時刻に合わせる</button><button id="s_rst" class="ghost" style="width:100%;margin-top:8px">補正をリセット（0分に戻す）</button>
   <p class="hint">気象庁が公表する調和定数（主要4分潮）で推算しています。実際の潮位表とは数十分ずれることがあります（那覇の公表値との比較では平均15分前後）。上のリンクで満潮時刻を確認し、ずれていれば満潮時刻で合わせてください。</p>
   <button id="s_save" class="pri" style="width:100%">設定を保存</button></div>
+ <div class="card"><h2>元の写真の保存</h2>
+  <label style="display:flex;gap:12px;align-items:center;margin:0"><input type="checkbox" id="s_exif" style="width:26px;min-height:26px;flex:none"><span>保存する元の写真のEXIFに「釣果ノート」を書き込む</span></label>
+  <p class="hint">「元の写真を『写真』アプリに保存」を使うとき、写真のカメラ名の末尾（例：iPhone 15 Pro 釣果ノート）とソフトウェア名に「釣果ノート」を入れます。撮影日時や位置などの他の情報は変えません。JPEG形式の写真のみ対象で、書き込みはフォームで写真を選んだ時点で行われます。</p></div>
  <div class="card"><h2>バックアップ</h2>
   <p class="hint">Safariのキャッシュ消去に備え、定期的にJSONで書き出してください（写真を含みます）。</p>
   <div id="cnt" class="sub"></div>
@@ -341,7 +344,7 @@ const dir16=d=>DIRS[Math.round(d/22.5)%16];
 
 /* ---------- 状態 ---------- */
 let env={lat:null,lon:null,place:'',muni:'',portTxt:'',wx:'',temp:'',windTxt:'',wave:'',sst:'',tideTxt:'',hours:[]};
-let cfg={port:'auto',off:0,v:2},records=[],cur=null,photo=null,orig=null,printing=false,printed=[];
+let cfg={port:'auto',off:0,v:2},records=[],cur=null,photo=null,orig=null,origT=null,printing=false,printed=[];
 
 function curPort(){let i=0;if(cfg.port!=='auto')i=+cfg.port;else if(env.lat!=null){let b=1e9;PORTS.forEach((p,k)=>{const d=dist(env.lat,env.lon,p[1],p[2]);if(d<b){b=d;i=k}})}return mkPort(PORTS[i])}
 const setSt=m=>$('#st').textContent=m;
@@ -442,6 +445,29 @@ async function refresh(){
 /* ---------- 画面切替 ---------- */
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));window.scrollTo(0,0)}
 
+/* 元の写真(JPEG)のEXIFのモデル名の末尾とソフトウェア名に「釣果ノート」を書き込む（他の情報はそのまま） */
+async function tagExif(file){
+ const buf=new Uint8Array(await file.arrayBuffer());
+ if(buf[0]!==0xFF||buf[1]!==0xD8)return file;
+ let p=2,app=-1,len=0;
+ while(p+4<buf.length&&buf[p]===0xFF){const m=buf[p+1];len=(buf[p+2]<<8)|buf[p+3];
+  if(m===0xE1&&buf[p+4]===0x45&&buf[p+5]===0x78&&buf[p+6]===0x69&&buf[p+7]===0x66){app=p;break}
+  if(m===0xDA)break;p+=2+len}
+ if(app<0)return file;
+ const t0=app+10,end=app+2+len,le=buf[t0]===0x49,dv=new DataView(buf.buffer,buf.byteOffset,buf.byteLength);
+ const r16=o=>dv.getUint16(o,le),r32=o=>dv.getUint32(o,le);
+ const ifd=t0+r32(t0+4),n=r16(ifd),NAME='釣果ノート',enc=new TextEncoder(),dec=new TextDecoder();
+ const adds=[];let off=end-t0,add=0;
+ for(let i=0;i<n;i++){const e=ifd+2+12*i,tag=r16(e);if(tag!==0x0110&&tag!==0x0131)continue;
+  const cnt=r32(e+4),at=cnt<=4?e+8:t0+r32(e+8);let old=dec.decode(buf.subarray(at,at+Math.max(0,cnt-1)));
+  const nv=tag===0x0131?NAME:(old.includes(NAME)?old:(old?old+' ':'')+NAME),b=enc.encode(nv),pad=(b.length+1)%2;
+  const bytes=new Uint8Array(b.length+1+pad);bytes.set(b);
+  dv.setUint16(e+2,2,le);dv.setUint32(e+4,b.length+1,le);dv.setUint32(e+8,off+add,le);adds.push(bytes);add+=bytes.length}
+ if(!add||len+add>65535)return file;
+ const out=new Uint8Array(buf.length+add);out.set(buf.subarray(0,end));let q=end;for(const a of adds){out.set(a,q);q+=a.length}out.set(buf.subarray(end),q);
+ out[app+2]=((len+add)>>8)&255;out[app+3]=(len+add)&255;
+ return new File([out],file.name,{type:'image/jpeg'});
+}
 /* ---------- 写真 ---------- */
 function resizeImg(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),i=new Image();
  i.onload=()=>{const k=Math.min(1,800/Math.max(i.naturalWidth,i.naturalHeight)),c=document.createElement('canvas');c.width=Math.round(i.naturalWidth*k);c.height=Math.round(i.naturalHeight*k);
@@ -464,7 +490,7 @@ function setTk(k,v){const sel=$('#t_'+k),o=$('#t_'+k+'_o'),opts=[...sel.options]
 function getTk(k){const v=$('#t_'+k).value;return v==='__o'?$('#t_'+k+'_o').value.trim():v}
 const F=['sp','size','cnt','ts','place','port','wx','temp','wind','wave','sst','tide','memo'];
 function openForm(r){
- cur=r||null;photo=r?r.photo||null:null;orig=null;$('#bOrig').hidden=true;
+ cur=r||null;photo=r?r.photo||null:null;orig=origT=null;$('#bOrig').hidden=true;
  const v=r||{ts:Date.now(),species:'',size:'',count:'',place:env.place,port:env.portTxt,wx:env.wx,temp:env.temp,wind:env.windTxt,wave:env.wave,sst:env.sst,tide:env.tideTxt,memo:''};
  $('#f_sp').value=v.species;$('#f_size').value=v.size;$('#f_cnt').value=v.count;$('#f_ts').value=toLocalIn(v.ts);
  $('#f_place').value=v.place||'';$('#f_port').value=v.port||'';$('#f_wx').value=v.wx||'';$('#f_temp').value=v.temp??'';$('#f_wind').value=v.wind||'';
@@ -510,7 +536,7 @@ function askClear(){$('#mDone').classList.add('on')}
 window.addEventListener('afterprint',()=>{if(printing){printing=false;if($('#prt').classList.contains('on'))askClear()}});
 
 /* ---------- 設定 ---------- */
-function openSet(){$('#ic_name').value=icn.name||'釣果ノート';$('#ic_tx').value=ICON_SY.includes(icn.sym)?'':(icn.sym||'');const s=$('#s_port');s.innerHTML='<option value="auto">自動（最寄りの検潮所）</option>'+PORTS.map((p,i)=>`<option value="${i}">${e(p[0])}</option>`).join('');s.value=cfg.port;$('#s_off').value=cfg.off||0;
+function openSet(){$('#s_exif').checked=cfg.exifTag!==false;$('#ic_name').value=icn.name||'釣果ノート';$('#ic_tx').value=ICON_SY.includes(icn.sym)?'':(icn.sym||'');const s=$('#s_port');s.innerHTML='<option value="auto">自動（最寄りの検潮所）</option>'+PORTS.map((p,i)=>`<option value="${i}">${e(p[0])}</option>`).join('');s.value=cfg.port;$('#s_off').value=cfg.off||0;
  const nh=(env.om||[]).find(x=>x.type==='H'&&x.t>Date.now());
  if(nh){$('#s_hi').value=hm(nh.t);$('#s_hi_note').textContent='初期値：Open-Meteoの推定（'+hm(nh.t)+'）。上の気象庁の潮位表で確認できた場合は、その時刻に書き換えてください（そちらの方が正確です）。'}
  else{$('#s_hi').value='';$('#s_hi_note').textContent='Open-Meteoの推定時刻を取得できていません。気象庁の潮位表で次の満潮時刻を確認して入力してください。'}
@@ -521,15 +547,16 @@ $('#bRef').onclick=refresh;$('#bNew').onclick=()=>openForm();$('#bSet').onclick=
 $('#fBack').onclick=()=>show('home');$('#sBack').onclick=()=>show('home');$('#pBack').onclick=()=>show('home');
 $('#list').onclick=ev=>{const b=ev.target.closest('.item');if(b)openForm(records.find(r=>r.id===+b.dataset.id))};
 $('#bPhoto').onclick=()=>$('#f_photo').click();
-$('#f_photo').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{photo=await resizeImg(f);orig=f;$('#bOrig').hidden=false;showPhoto()}catch(x){alert(x.message)}ev.target.value=''};
-$('#bPhotoDel').onclick=()=>{photo=null;orig=null;$('#bOrig').hidden=true;showPhoto()};
-$('#bOrig').onclick=async()=>{if(!orig)return;try{if(navigator.canShare&&navigator.canShare({files:[orig]}))await navigator.share({files:[orig]});else alert('この環境では共有メニューが使えません。標準のカメラで撮影してから、ライブラリで選んでください。')}catch(x){if(x.name!=='AbortError')alert('共有できませんでした：'+x.message)}};
+$('#f_photo').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{photo=await resizeImg(f);orig=f;origT=cfg.exifTag===false?f:await tagExif(f).catch(()=>f);$('#bOrig').hidden=false;showPhoto()}catch(x){alert(x.message)}ev.target.value=''};
+$('#bPhotoDel').onclick=()=>{photo=null;orig=origT=null;$('#bOrig').hidden=true;showPhoto()};
+$('#bOrig').onclick=async()=>{if(!origT)return;try{if(navigator.canShare&&navigator.canShare({files:[origT]}))await navigator.share({files:[origT]});else alert('この環境では共有メニューが使えません。標準のカメラで撮影してから、ライブラリで選んでください。')}catch(x){if(x.name!=='AbortError')alert('共有できませんでした：'+x.message)}};
 const lensUp=()=>{const q=$('#f_sp').value.trim();$('#bLens').href=q?`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q+' 魚')}`:'https://www.google.com/imghp?hl=ja'};$('#f_sp').addEventListener('input',lensUp);
 $('#chips').onclick=ev=>{const c=ev.target.dataset.c;if(!c)return;const m=$('#f_memo');m.value+=(m.value&&!/\s$/.test(m.value)?' ':'')+c+' '};
 $('#bSave').onclick=save;
 $('#bDel').onclick=()=>$('#mDel').classList.add('on');
 $('#mDelN').onclick=()=>$('#mDel').classList.remove('on');
 $('#mDelY').onclick=async()=>{$('#mDel').classList.remove('on');if(cur){await del(cur.id);await renderList()}show('home')};
+$('#s_exif').onchange=async()=>{cfg.exifTag=$('#s_exif').checked;await kvSet('cfg',cfg)};
 $('#s_save').onclick=async()=>{cfg.port=$('#s_port').value;cfg.off=parseInt($('#s_off').value,10)||0;await kvSet('cfg',cfg);renderTide();alert('保存しました。')};
 $('#s_cal').onclick=async()=>{const v=$('#s_hi').value;if(!v){alert('次の満潮時刻を入力してください。');return}
  const [hh,mm]=v.split(':').map(Number),now=Date.now(),g=new Date();g.setHours(hh,mm,0,0);let tg=g.getTime();if(tg<now-30*6e4)tg+=864e5;
@@ -553,7 +580,7 @@ $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$(
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-19q';
+const VER='2026-11-19r';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};

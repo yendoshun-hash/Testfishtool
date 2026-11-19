@@ -44,7 +44,7 @@ main{padding:12px 12px 120px;max-width:560px;margin:0 auto}
 .tide .big{font-size:34px;color:#fff}
 .tide .nx{display:flex;gap:10px;margin-top:6px}.tide .nx div{flex:1;background:#ffffff14;border-radius:10px;padding:6px 10px;font-size:14px}.tide .nx b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
 .tide svg{width:100%;height:auto;margin-top:8px;display:block}
-.ref{background:#ffffff14;border-radius:10px;padding:8px 10px;margin-top:8px;font-size:13px;line-height:1.5;color:#fff}.tide small{color:#b9ccd6;font-size:12px;display:block;margin-top:4px}
+.tn{font-size:16px;margin-bottom:6px;color:#fff}.tn b{color:var(--buoy);font-size:26px;font-family:var(--serif);margin:0 2px}.tide .hr{background:#ffffff14;color:#fff}.tide .hr b{display:block;color:var(--buoy);font-size:15px}.tide .hr em{color:#b9ccd6;font-weight:400}.tide .hours{margin-top:6px}.ref{background:#ffffff14;border-radius:10px;padding:8px 10px;margin-top:8px;font-size:13px;line-height:1.5;color:#fff}.tide small{color:#b9ccd6;font-size:12px;display:block;margin-top:4px}
 .sec{display:flex;align-items:center;justify-content:space-between;margin:18px 2px 8px}.sec h2{margin:0;font:700 18px var(--serif)}
 .item{display:flex;gap:10px;align-items:center;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:8px;margin-bottom:8px;width:100%;text-align:left;min-height:72px;font-weight:400}
 .item img,.item .ni{width:60px;height:60px;border-radius:8px;object-fit:cover;background:var(--foam);flex:none;display:grid;place-items:center;font-size:11px;color:#6b8290}
@@ -109,7 +109,7 @@ body{padding:0}
  <div class="card"><h2>現在地</h2><div id="loc" class="big">—</div><div id="loc2" class="sub"></div>
   <div class="row" style="margin-top:10px"><a id="jma" class="btn warn" target="_blank" rel="noopener" href="https://www.jma.go.jp/bosai/warning/">⚠ 気象庁 注意報・警報を見る</a></div></div>
  <div class="card"><h2>気象・海象</h2><div id="wx" class="sub">取得待ち…</div><div id="hours" class="hours"></div></div>
- <div class="card tide"><h2>潮汐の推算値（気象庁の調和定数）</h2><div id="td" class="big">—</div><div id="td2" class="sub" style="color:#b9ccd6"></div><div class="nx" id="tdn"></div><div id="tdc"></div><small id="tdp"></small><div id="tdo" class="ref"></div><a id="tdl" class="btn ghost" target="_blank" rel="noopener" href="https://www.data.jma.go.jp/kaiyou/db/tide/suisan/" style="width:100%;margin-top:10px;color:#fff;border-color:#ffffff66">📖 気象庁の潮位表</a><button class="ghost" data-copy="#tdl" style="width:100%;margin-top:8px;min-height:44px;color:#fff;border-color:#ffffff66">🔗 リンクをコピー（好きなブラウザに貼り付け）</button></div>
+ <div class="card tide"><h2>潮汐の推算値（気象庁の調和定数）</h2><div id="tn" class="tn"></div><div id="td" class="big">—</div><div id="td2" class="sub" style="color:#b9ccd6"></div><div class="nx" id="tdn"></div><div id="tdc"></div><div id="tw" class="hours"></div><small id="tdp"></small><div id="tdo" class="ref"></div><a id="tdl" class="btn ghost" target="_blank" rel="noopener" href="https://www.data.jma.go.jp/kaiyou/db/tide/suisan/" style="width:100%;margin-top:10px;color:#fff;border-color:#ffffff66">📖 気象庁の潮位表</a><button class="ghost" data-copy="#tdl" style="width:100%;margin-top:8px;min-height:44px;color:#fff;border-color:#ffffff66">🔗 リンクをコピー（好きなブラウザに貼り付け）</button></div>
  <div class="sec"><h2>記録一覧</h2><button id="bPrint" class="ghost" style="min-height:44px">🖨 PDF出力</button></div>
  <div id="list"></div>
  <p class="hint" id="ver2" style="text-align:center"></p>
@@ -192,7 +192,7 @@ body{padding:0}
    <li>共有シートから「“ファイル”に保存」を選ぶ。</li>
    <li>保存後、このアプリで「クリアする」を選ぶと記録が空になります。</li></ol></details>
  </div>
- <div class="card"><h2>動作条件のメモ</h2><p class="hint" id="ver"></p>
+ <div class="card"><h2>動作条件のメモ</h2><p class="hint" id="ver"></p><p class="hint">潮名（大潮・中潮・小潮・長潮・若潮）は、その日の正午の月齢から判定しています。潮位表の表記と、境目の日に1日ずれることがあります。</p>
   <p class="hint">GPSと天気取得にはHTTPS接続が必要です（GitHub Pagesなどに置いて開いてください）。ファイルアプリから直接開いた場合は、位置情報やIndexedDBが動作しないことがあります。気象データは Open-Meteo、地名は国土地理院とBigDataCloudを利用しています。</p></div>
 </main>
 </section>
@@ -311,6 +311,14 @@ function extrema(P,t0,off){const st=6*6e4,a=t0-16*36e5,n=Math.round(48*36e5/st),
  const out=[];for(let i=1;i<n;i++){const hi=y[i]>y[i-1]&&y[i]>=y[i+1],lo=y[i]<y[i-1]&&y[i]<=y[i+1];if(!hi&&!lo)continue;
   const d=y[i-1]-2*y[i]+y[i+1],dx=d?0.5*(y[i-1]-y[i+1])/d:0;out.push({t:a+(i+dx)*st,type:hi?'H':'L'})}return out}
 
+/* ---------- 月齢・潮名（大潮・中潮・小潮・長潮・若潮） ---------- */
+function moonE(t){const T=(t-J2000)/864e5/36525,s=218.3165+481267.8813*T,h=280.4661+36000.7698*T,Mm=134.9634+477198.8676*T,Ms=357.5291+35999.0503*T,F=93.272+483202.0175*T,S=x=>Math.sin(x*D),d2=2*(s-h);
+ let e=(s+6.289*S(Mm)+1.274*S(d2-Mm)+.658*S(d2)+.214*S(2*Mm)-.186*S(Ms)-.114*S(2*F)-(h+1.915*S(Ms)+.02*S(2*Ms)))%360;if(e>180)e-=360;if(e<=-180)e+=360;return e}
+function moonAge(noon){const conv=t=>{for(let i=0;i<6;i++)t-=moonE(t)/12.19*864e5;return t};
+ let t=conv(noon-(((moonE(noon)%360)+360)%360)/12.19*864e5);if(t>noon)t=conv(t-29.53*864e5);return(noon-t)/864e5}
+const CH=['大潮','大潮','大潮','中潮','中潮','中潮','小潮','小潮','小潮','長潮','若潮','中潮','中潮','中潮','大潮'];
+const tideName=noon=>{const a=moonAge(noon);return{n:CH[(Math.floor(a))%15],a}};
+const moonEm=a=>'🌑🌒🌓🌔🌕🌖🌗🌘'[Math.round(a/29.53*8)%8];
 /* ---------- 天気コード・風向 ---------- */
 function wxInfo(c){if(c==null)return['❔','—'];if(c===0)return['☀️','快晴'];if(c===1)return['🌤','晴れ'];if(c===2)return['⛅','薄曇り'];if(c===3)return['☁️','曇り'];if(c<=48)return['🌫','霧'];if(c<=57)return['🌦','霧雨'];if(c<=67)return['🌧','雨'];if(c<=77)return['🌨','雪'];if(c<=82)return['🌦','にわか雨'];if(c<=86)return['🌨','雪'];return['⛈','雷雨']}
 const DIRS=['北','北北東','北東','東北東','東','東南東','南東','南南東','南','南南西','南西','西南西','西','西北西','北西','北北西'];
@@ -347,13 +355,16 @@ function renderWx(){
 const jmaURL=c=>{const a=new Date(),b=new Date(Date.now()+2*864e5);return `https://www.data.jma.go.jp/kaiyou/db/tide/suisan/suisan.php?stn=${c}&ys=${a.getFullYear()}&ms=${a.getMonth()+1}&ds=${a.getDate()}&ye=${b.getFullYear()}&me=${b.getMonth()+1}&de=${b.getDate()}`};
 function renderTide(){
  const P=curPort(),now=Date.now(),off=+cfg.off||0,ex=extrema(P,now,off);
+ const jd=Math.floor((now+9*36e5)/864e5),wk=[0,1,2,3,4,5,6].map(i=>{const t=(jd+i)*864e5+3*36e5,x=tideName(t),d=new Date(t+9*36e5);return Object.assign(x,{m:d.getUTCMonth()+1,d:d.getUTCDate(),w:'日月火水木金土'[d.getUTCDay()]})});
+ $('#tn').innerHTML=`${moonEm(wk[0].a)} 今日は<b>${wk[0].n}</b>（月齢 ${wk[0].a.toFixed(1)}）`;
+ $('#tw').innerHTML=wk.map(x=>`<div class="hr">${x.m}/${x.d}(${x.w})<i>${moonEm(x.a)}</i><b>${x.n}</b>${x.a.toFixed(1)}</div>`).join('');
  const prev=[...ex].reverse().find(x=>x.t<=now),nxt=ex.find(x=>x.t>now);
  if(!prev||!nxt){$('#td').textContent='計算不能';return}
  const el=now-prev.t,tot=nxt.t-prev.t,near=Math.min(el,nxt.t-now)<=30*6e4;
  let label;if(near){label=(el<=nxt.t-now?prev.type:nxt.type)==='H'?'満潮前後':'干潮前後'}else{label=(prev.type==='L'?'上げ':'下げ')+Math.max(1,Math.min(9,Math.round(el/tot*10)))+'分'}
  const mn=Math.round(el/6e4);
  const nh=ex.find(x=>x.t>now&&x.type==='H'),nl=ex.find(x=>x.t>now&&x.type==='L');
- env.tideTxt=`${label}（次の${nxt.type==='H'?'満潮':'干潮'} ${hm(nxt.t)}）`;
+ env.tideTxt=`${wk[0].n}・${label}（次の${nxt.type==='H'?'満潮':'干潮'} ${hm(nxt.t)}）`;
  $('#td').textContent=label;
  $('#td2').textContent=`${prev.type==='L'?'干潮':'満潮'}から${Math.floor(mn/60)?Math.floor(mn/60)+'時間':''}${mn%60}分経過`;
  $('#tdn').innerHTML=`<div>次の満潮<b>${nh?hm(nh.t):'—'}</b></div><div>次の干潮<b>${nl?hm(nl.t):'—'}</b></div>`;
@@ -524,7 +535,7 @@ $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$(
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-19g';
+const VER='2026-11-19h';
 /* ---------- 起動 ---------- */
 (async()=>{
  tick();setInterval(tick,1000);$('#ver').textContent=$('#ver2').textContent='アプリのバージョン：'+VER;

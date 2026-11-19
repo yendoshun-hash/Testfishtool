@@ -75,7 +75,7 @@ details{border-top:1px solid var(--line);padding:8px 0}summary{font-weight:700;m
 .pb{display:flex;gap:3mm;flex:1;min-height:0}
 .pi{flex:0 0 42%;background:var(--foam);display:grid;place-items:center;overflow:hidden;border:.3mm solid var(--ink);min-height:40mm}.pi img{width:100%;height:100%;object-fit:cover}.pi i{font-size:11px;color:#6b8290}
 .pb dl{flex:1;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:1mm 2.5mm;align-content:start}
-.pb dl div{border-bottom:.2mm solid var(--line);padding-bottom:.6mm;min-width:0}.pb dl .w{grid-column:span 2}
+.pb dl div{border-bottom:.2mm solid var(--line);padding-bottom:.6mm;min-width:0;display:flex;gap:1.5mm;align-items:baseline}.pb dt{flex:none}.pb dl .w{grid-column:span 2}
 .pb dt{font-size:9px;color:var(--sea);font-weight:700}.pb dd{margin:0;font-size:12px;overflow-wrap:anywhere;line-height:1.3}
 .pm{margin:0;border:.2mm solid var(--line);padding:1mm 2mm;font-size:11px;line-height:1.4;overflow:hidden;max-height:17mm}.pm b{color:var(--sea);margin-right:2mm;font-size:9px}
 @media print{
@@ -90,8 +90,8 @@ body{padding:0}
 .pc{flex:0 0 calc((273mm - 5mm - var(--n)*4mm)/var(--n));min-height:0}
 .pf{height:5mm;font-size:8pt}
 .ph h3{font-size:17pt}.ph .dt{font-size:9pt}.ph .no{font-size:8pt}
-.pb dt{font-size:7pt}.pb dd{font-size:9.5pt}.pm{font-size:8.5pt;max-height:16mm}
-.pi{min-height:0;flex-basis:45%}
+.pb dt{font-size:6.5pt}.pb dd{font-size:8.5pt;line-height:1.25}.pm{font-size:8pt;max-height:9mm}
+.pi{min-height:0;flex-basis:38%}
 *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
@@ -129,6 +129,7 @@ body{padding:0}
  <div class="row" style="margin-top:8px"><a id="bLens" class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/imghp?hl=ja">🔍 Google画像検索で調べる</a></div>
  <p class="hint">写真を長押しして「コピー」または保存し、開いたGoogleのカメラアイコンから貼り付けると魚種を調べられます。魚種名を入力済みなら、その名前でも検索できます。</p>
  <div class="two"><div><label for="f_size">サイズ（cm）</label><input id="f_size" inputmode="decimal" placeholder="任意"></div><div><label for="f_cnt">匹数</label><input id="f_cnt" inputmode="numeric" placeholder="任意"></div></div>
+ <div class="card" style="margin-top:16px"><h2>タックル</h2><div id="tk"></div></div>
  <div class="card" style="margin-top:16px"><h2>環境データ（自動入力・修正可）</h2>
   <label for="f_ts">日時</label><input id="f_ts" type="datetime-local">
   <label for="f_place">場所</label><input id="f_place">
@@ -416,18 +417,28 @@ function showPhoto(){$('#pv').innerHTML=photo?`<img src="${photo}" alt="釣果�
 /* ---------- フォーム ---------- */
 const CHIPS=['ジグ','ワーム','ミノー','エサ釣り','オキアミ','イソメ','サビキ','投げ釣り','ウキ釣り','潮目あり','ベイト多い','濁り','朝マヅメ','夕マヅメ','夜釣り','リリース','ハイブリットクロス','F1.5','F2.0','ムキミ','セット仕掛け','自作仕掛け','胴突','3本針','2本針','伊勢尼','グレ針','チヌ針','1号','2号','3号','0.5号','0.1号'];
 $('#chips').innerHTML=CHIPS.map(c=>`<button type="button" data-c="${e(c)}">${e(c)}</button>`).join('');
+const TK=[
+['rod','ロッド',['エメラルダスＸ86ML','TsulinoCHILLAXカワハギ','ジギンガーＺ','テレショーティ改','鱒レンジャー月光夜刀'],'ジギンガーＺ'],
+['reel','リール',['エメラルダスＸ 2500','レガリス23 2500','カーディナルⅢSX 2500','カーディナルⅢSTX 3000'],'レガリス23 2500'],
+['lt','ラインの種類',['PE','ナイロン','エステル'],'PE'],
+['lw','ラインの太さ（号）',['0.6','0.8','1.0','2.0','3.0','4.0'],'0.8']];
+$('#tk').innerHTML=TK.map(t=>`<label for="t_${t[0]}">${t[1]}</label><select id="t_${t[0]}"><option value="">（未選択）</option>${t[2].map(o=>`<option value="${e(o)}">${e(o)}</option>`).join('')}<option value="__o">その他（自由入力）</option></select><input id="t_${t[0]}_o" placeholder="自由に入力" style="margin-top:6px" hidden>`).join('');
+TK.forEach(t=>$('#t_'+t[0]).addEventListener('change',()=>{const o=$('#t_'+t[0]+'_o'),x=$('#t_'+t[0]).value==='__o';o.hidden=!x;if(x)o.focus()}));
+function setTk(k,v){const sel=$('#t_'+k),o=$('#t_'+k+'_o'),opts=[...sel.options].map(x=>x.value);
+ if(v===''||v==null||opts.includes(v)){sel.value=v||'';o.hidden=true;o.value=''}else{sel.value='__o';o.hidden=false;o.value=v}}
+function getTk(k){const v=$('#t_'+k).value;return v==='__o'?$('#t_'+k+'_o').value.trim():v}
 const F=['sp','size','cnt','ts','place','port','wx','temp','wind','wave','sst','tide','memo'];
 function openForm(r){
  cur=r||null;photo=r?r.photo||null:null;
  const v=r||{ts:Date.now(),species:'',size:'',count:'',place:env.place,port:env.portTxt,wx:env.wx,temp:env.temp,wind:env.windTxt,wave:env.wave,sst:env.sst,tide:env.tideTxt,memo:''};
  $('#f_sp').value=v.species;$('#f_size').value=v.size;$('#f_cnt').value=v.count;$('#f_ts').value=toLocalIn(v.ts);
  $('#f_place').value=v.place||'';$('#f_port').value=v.port||'';$('#f_wx').value=v.wx||'';$('#f_temp').value=v.temp??'';$('#f_wind').value=v.wind||'';
- $('#f_wave').value=v.wave??'';$('#f_sst').value=v.sst??'';$('#f_tide').value=v.tide||'';$('#f_memo').value=v.memo||'';
+ $('#f_wave').value=v.wave??'';$('#f_sst').value=v.sst??'';$('#f_tide').value=v.tide||'';$('#f_memo').value=v.memo||'';TK.forEach(t=>setTk(t[0],r?(r[t[0]]||''):t[3]));
  lensUp();$('#fTitle').textContent=r?'記録を編集':'釣果を記録';$('#bDel').hidden=!r;showPhoto();show('form');
 }
 async function save(){
  const ts=new Date($('#f_ts').value).getTime()||Date.now();
- const rec=Object.assign({},cur||{},{ts,photo,species:$('#f_sp').value.trim(),size:$('#f_size').value.trim(),count:$('#f_cnt').value.trim(),place:$('#f_place').value.trim(),port:$('#f_port').value.trim(),wx:$('#f_wx').value.trim(),temp:$('#f_temp').value.trim(),wind:$('#f_wind').value.trim(),wave:$('#f_wave').value.trim(),sst:$('#f_sst').value.trim(),tide:$('#f_tide').value.trim(),memo:$('#f_memo').value.trim(),lat:cur?cur.lat:env.lat,lon:cur?cur.lon:env.lon});
+ const rec=Object.assign({},cur||{},{ts,photo,species:$('#f_sp').value.trim(),size:$('#f_size').value.trim(),count:$('#f_cnt').value.trim(),place:$('#f_place').value.trim(),port:$('#f_port').value.trim(),wx:$('#f_wx').value.trim(),temp:$('#f_temp').value.trim(),wind:$('#f_wind').value.trim(),wave:$('#f_wave').value.trim(),sst:$('#f_sst').value.trim(),tide:$('#f_tide').value.trim(),memo:$('#f_memo').value.trim(),rod:getTk('rod'),reel:getTk('reel'),lt:getTk('lt'),lw:getTk('lw'),lat:cur?cur.lat:env.lat,lon:cur?cur.lon:env.lon});
  try{await put(rec)}catch(x){alert('保存に失敗しました：'+x.message);return}
  await renderList();show('home');
 }
@@ -450,9 +461,9 @@ function buildPrint(){
  const n=+$('#pN').value,list=[...records].sort((a,b)=>a.ts-b.ts);printed=list.map(r=>r.id);
  const card=(r,i)=>`<article class="pc"><div class="ph"><span class="no">No.${i+1}</span><h3>${e(r.species||'魚種未記入')}</h3><span class="dt">${fmt(r.ts)}</span></div>
  <div class="pb"><div class="pi">${r.photo?`<img src="${r.photo}" alt="">`:'<i>写真なし</i>'}</div><dl>
- ${row('サイズ',r.size?r.size+' cm':'')}${row('匹数',r.count?r.count+' 匹':'')}${row('場所',r.place,1)}${row('最寄りの港',r.port,1)}
- ${row('天気',r.wx)}${row('気温',r.temp?r.temp+' ℃':'')}${row('風',r.wind,1)}${row('波高',r.wave?r.wave+' m':'')}${row('海水温',r.sst?r.sst+' ℃':'')}${row('潮汐',r.tide,1)}
- ${row('座標',r.lat!=null?r.lat.toFixed(4)+', '+r.lon.toFixed(4):'',1)}</dl></div><p class="pm"><b>メモ</b>${e(r.memo)||'—'}</p></article>`;
+ ${row('サイズ',r.size?r.size+' cm':'')}${row('匹数',r.count?r.count+' 匹':'')}${row('天気',r.wx)}${row('気温',r.temp?r.temp+' ℃':'')}${row('波高',r.wave?r.wave+' m':'')}${row('海水温',r.sst?r.sst+' ℃':'')}
+ ${row('風',r.wind,1)}${row('潮汐',r.tide,1)}${row('場所',(r.place||'')+(r.lat!=null?'（'+r.lat.toFixed(4)+', '+r.lon.toFixed(4)+'）':''),1)}${row('最寄りの港',r.port,1)}
+ ${row('ロッド',r.rod,1)}${row('リール',r.reel,1)}${row('ライン',[r.lt,r.lw?(isNaN(r.lw)?r.lw:r.lw+'号'):''].filter(Boolean).join(' '),1)}</dl></div><p class="pm"><b>メモ</b>${e(r.memo)||'—'}</p></article>`;
  let h='';const pages=Math.ceil(list.length/n);
  for(let p=0;p<pages;p++)h+=`<div class="page" style="--n:${n}">${list.slice(p*n,p*n+n).map((r,i)=>card(r,p*n+i)).join('')}<div class="pf">釣果図鑑カード　${p+1} / ${pages}</div></div>`;
  $('#pa').innerHTML=h;

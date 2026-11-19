@@ -102,6 +102,7 @@ body{padding:0}
 <section id="home" class="view on">
 <header class="top"><h1>釣果ノート</h1><button id="bSet" aria-label="設定とヘルプ">⚙ 設定</button></header>
 <main>
+ <div id="upd" class="card" hidden style="border-color:var(--buoy);border-width:3px"><b>新しいバージョン（<span id="updv"></span>）があります</b><button id="bUpd" class="pri" style="width:100%;margin-top:8px">今すぐ更新</button></div>
  <div class="card">
   <div class="clock"><div><div id="clk">--:--:--</div><div id="dt">&nbsp;</div></div><button id="bRef" class="pri" style="min-width:92px">↻ 更新</button></div>
   <p id="st">位置情報を取得しています…</p>
@@ -192,7 +193,7 @@ body{padding:0}
    <li>共有シートから「“ファイル”に保存」を選ぶ。</li>
    <li>保存後、このアプリで「クリアする」を選ぶと記録が空になります。</li></ol></details>
  </div>
- <div class="card"><h2>動作条件のメモ</h2><p class="hint" id="ver"></p><p class="hint">潮名（大潮・中潮・小潮・長潮・若潮）は、その日の正午の月齢から判定しています。潮位表の表記と、境目の日に1日ずれることがあります。</p>
+ <div class="card"><h2>動作条件のメモ</h2><p class="hint" id="ver"></p><button id="bChk" style="width:100%;margin-bottom:8px">最新版を確認して更新</button><p class="hint">潮名（大潮・中潮・小潮・長潮・若潮）は、その日の正午の月齢から判定しています。潮位表の表記と、境目の日に1日ずれることがあります。</p>
   <p class="hint">GPSと天気取得にはHTTPS接続が必要です（GitHub Pagesなどに置いて開いてください）。ファイルアプリから直接開いた場合は、位置情報やIndexedDBが動作しないことがあります。気象データは Open-Meteo、地名は国土地理院とBigDataCloudを利用しています。</p></div>
 </main>
 </section>
@@ -535,14 +536,19 @@ $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$(
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-19h';
+const VER='2026-11-19i';
+async function checkUpdate(manual){try{const r=await fetch(location.pathname+'?c='+Date.now(),{cache:'no-store'}),t=await r.text(),m=t.match(/const VER='([^']+)'/);
+ if(m&&m[1]!==VER){$('#updv').textContent=m[1];$('#upd').hidden=false;if(manual)alert('新しいバージョン（'+m[1]+'）があります。ホーム画面上部の「今すぐ更新」を押してください。')}else if(manual)alert('最新版です（'+VER+'）。')}
+ catch(x){if(manual)alert('確認できませんでした。通信状況を確認してください。')}}
+async function doUpdate(){try{await fetch(location.pathname,{cache:'reload'})}catch(x){}location.reload()}
+$('#bUpd').onclick=doUpdate;$('#bChk').onclick=()=>checkUpdate(true);
 /* ---------- 起動 ---------- */
 (async()=>{
  tick();setInterval(tick,1000);$('#ver').textContent=$('#ver2').textContent='アプリのバージョン：'+VER;
  try{await openDB();cfg=Object.assign(cfg,(await kvGet('cfg'))||{});if(cfg.v!==2){cfg.port='auto';cfg.off=0;cfg.v=2;await kvSet('cfg',cfg)}await renderList()}
  catch(x){$('#list').innerHTML='<div class="empty">この環境ではIndexedDBが使えません。プライベートブラウズを解除してください。</div>'}
  renderTide();setInterval(renderTide,30000);
- refresh();
+ refresh();checkUpdate();
 })();
 </script>
 </body>

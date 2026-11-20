@@ -25,7 +25,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .pri{background:var(--sea);border-color:var(--sea);color:#fff}
 .warn{background:var(--red);border-color:var(--red);color:#fff}
 .ghost{background:transparent}
-main{padding:12px 12px 120px;max-width:560px;margin:0 auto}
+main{padding:12px 12px 190px;max-width:560px;margin:0 auto}
 .card{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px}
 .card h2{margin:0 0 6px;font:700 15px/1.3 var(--sans);color:var(--sea)}
 .row{display:flex;gap:8px;align-items:center}.row>*{flex:1}
@@ -41,7 +41,7 @@ main{padding:12px 12px 120px;max-width:560px;margin:0 auto}
 .hours{display:flex;gap:6px;overflow-x:auto;padding:8px 0 4px;margin-top:8px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
 .hr{flex:0 0 62px;text-align:center;background:var(--foam);border-radius:10px;padding:6px 2px;font-size:13px;scroll-snap-align:start}
 .hr i{font-style:normal;font-size:22px;display:block}.hr em{font-style:normal;color:var(--sea);font-weight:700}
-.tide{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tide{background:var(--tb,var(--ink));transition:background 1s;color:#fff;border-color:var(--ink)}
 .tide h2{color:var(--buoy)}
 .tide .big{font-size:34px;color:#fff}
 .tide .nx{display:flex;gap:10px;margin-top:6px}.tide .nx div{flex:1;background:#ffffff14;border-radius:10px;padding:6px 10px;font-size:14px}.tide .nx b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
@@ -96,29 +96,60 @@ body{padding:0}
 .pb{align-items:flex-start}.pi{flex:0 0 auto;width:calc(var(--ph)*3/4);height:var(--ph);aspect-ratio:auto}.pb dl{grid-template-columns:repeat(6,1fr)}.pb dl .c2{grid-column:span 2}.pb dl .c3{grid-column:span 3}.pb dl .c4{grid-column:span 4}.pb dl .c6{grid-column:span 6}
 *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+.ck{display:flex;gap:12px;align-items:center;margin:8px 0;font-weight:400}.ck input{width:26px;min-height:26px;flex:none}
+.tabs{display:none;position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--ink);padding:4px 6px calc(4px + env(safe-area-inset-bottom));gap:4px}
+body[data-v=home] .tabs,body[data-v=rec] .tabs,body[data-v=stat] .tabs,body[data-v=set] .tabs{display:flex}
+.tabs button{flex:1;flex-direction:column;gap:0;min-height:52px;border:0;background:transparent;color:#ffffffb0;font-size:20px;line-height:1.2;border-radius:10px;padding:0}
+.tabs button span{font-size:11px}.tabs button.on{background:#ffffff26;color:#fff}
+.fab{display:none;bottom:calc(58px + env(safe-area-inset-bottom));padding:8px 12px;gap:8px}
+body[data-v=home] .fab,body[data-v=rec] .fab{display:flex}
+#toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;font-weight:700;z-index:30;display:none;max-width:90%;text-align:center}
+.warnbar{background:var(--red);color:#fff;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-weight:700;font-size:17px;border:3px solid #fff;box-shadow:0 0 0 3px var(--red)}
+.sumc{border:2px solid var(--sea)}#sum{font:700 17px/1.5 var(--serif)}
+.item{align-items:stretch;border:3px double var(--ink);gap:12px}
+.item img,.item .ni{width:84px;height:112px;border-radius:4px}.item b{font-size:19px}
+.tg{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.tg i{font-style:normal;font-size:12px;background:var(--foam);padding:1px 8px;border-radius:10px}.tg i.pb{background:var(--buoy);font-weight:700;color:#14293a}.tg i.lt{background:var(--red);color:#fff}
+.bar2{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:14px}.bar2 b{flex:0 0 96px;font-size:13px}.bar2 div{flex:1;background:var(--foam);border-radius:6px;height:20px;overflow:hidden}.bar2 s{display:block;height:100%;background:var(--sea);text-decoration:none}.bar2 em{flex:0 0 52px;text-align:right;font-style:normal;font-variant-numeric:tabular-nums}.bar2.top s{background:var(--buoy)}.bar2.top b{color:var(--red)}
+.pbr{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}
+@media screen{
+body.night{--paper:#140b0b;--ink:#ffb4a6;--foam:#2b1616;--line:#4d2828;--sea:#ff8a75;--buoy:#ff6b57;--red:#d6372b}
+body.night .card,body.night input,body.night select,body.night textarea,body.night .item,body.night .modal,body.night button:not(.pri):not(.warn){background:#1e1010;color:var(--ink)}
+body.night header.top,body.night .tabs{background:#2a1212}body.night .top h1,body.night .tabs button{color:#ff9d8f}body.night .top button{color:#ff9d8f;border-color:#6b3030}body.night .tabs button.on{background:#ffffff14}
+body.night .pri{background:#7a2a20;border-color:#7a2a20;color:#ffd9d2}body.night .warn,body.night .warnbar{background:#8c1f17;border-color:#8c1f17;color:#ffd9d2}
+body.night .tide{--tb:#2a1212!important}body.night .tide .big,body.night .tn,body.night .tide .hr,body.night .ref,body.night .tide .nx div{color:#ffb4a6}
+body.night .sub,body.night .hint{color:#c9857a}body.night .tile,body.night .hr,body.night .photo,body.night .chips button{background:#2b1616}body.night .tg i{background:#2b1616}
+}
+body.big{font-size:19px}body.big button,body.big .btn{min-height:60px;font-size:19px}body.big input,body.big select,body.big textarea{min-height:60px;font-size:19px}body.big .chips button{min-height:52px;font-size:17px}body.big .tabs button{min-height:64px}body.big .tabs button span{font-size:13px}body.big #clk{font-size:48px}body.big .tile b{font-size:22px}
 </style>
 </head>
 <body>
 
 <!-- ホーム -->
 <section id="home" class="view on">
-<header class="top"><h1>釣果ノート</h1><button id="bSet" aria-label="設定とヘルプ">⚙ 設定</button></header>
+<header class="top"><h1>釣果ノート</h1><button id="bNight" aria-label="ナイトモード切替">🌙</button></header>
 <main>
  <div id="upd" class="card" hidden style="border-color:var(--buoy);border-width:3px"><b>新しいバージョン（<span id="updv"></span>）があります</b><button id="bUpd" class="pri" style="width:100%;margin-top:8px">今すぐ更新</button></div>
+ <div id="warn" class="warnbar" hidden></div>
+ <div id="bkn" class="card" hidden style="border-color:var(--buoy);border-width:3px"><b id="bknT"></b><button id="bBk" class="pri" style="width:100%;margin-top:8px">今すぐバックアップを書き出す</button></div>
+ <div class="card sumc"><div id="sum">取得中…</div></div>
+ <div class="card" id="tripc"></div>
  <div class="card">
   <div class="clock"><div><div id="clk">--:--:--</div><div id="dt">&nbsp;</div></div><button id="bRef" class="pri" style="min-width:92px">↻ 更新</button></div>
   <p id="st">位置情報を取得しています…</p>
  </div>
  <div class="card"><h2>現在地</h2><div id="loc" class="big">—</div><div id="loc2" class="sub"></div>
   <div class="row" style="margin-top:10px"><a id="jma" class="btn warn" target="_blank" rel="noopener" href="https://www.jma.go.jp/bosai/warning/">⚠ 気象庁 注意報・警報を見る</a></div></div>
- <div class="card"><h2>気象・海象</h2><div id="wx" class="sub">取得待ち…</div><div id="hours" class="hours"></div></div>
+ <div class="card"><h2>日の出・日の入り・マヅメ</h2><div id="sun" class="sub">—</div></div>
+ <div class="card"><h2>気象・海象</h2><div id="wx" class="sub">取得待ち…</div><div id="wxs" class="sub" style="color:var(--red);font-weight:700"></div><div id="hours" class="hours"></div></div>
  <div class="card tide"><h2>潮汐の推算値（気象庁の調和定数）</h2><div id="tn" class="tn"></div><div id="td" class="big">—</div><div id="td2" class="sub" style="color:#b9ccd6"></div><div class="nx" id="tdn"></div><div id="tdc"></div><div id="tw" class="hours"></div><small>棒の高さ＝その日の干満差の大きさ（高いほど潮が大きく動きます）／下の数字は月齢</small><small id="tdp"></small><div id="tdo" class="ref"></div><a id="tdl" class="btn ghost" target="_blank" rel="noopener" href="https://www.data.jma.go.jp/kaiyou/db/tide/suisan/" style="width:100%;margin-top:10px;color:#fff;border-color:#ffffff66">📖 気象庁の潮位表</a><button class="ghost" data-copy="#tdl" style="width:100%;margin-top:8px;min-height:44px;color:#fff;border-color:#ffffff66">🔗 リンクをコピー（好きなブラウザに貼り付け）</button></div>
- <div class="sec"><h2>記録一覧</h2><button id="bPrint" class="ghost" style="min-height:44px">🖨 PDF出力</button></div>
- <div id="list"></div>
  <p class="hint" id="ver2" style="text-align:center"></p>
 </main>
-<div class="fab"><button id="bNew" class="pri">＋ 釣果を記録する</button></div>
 </section>
+<section id="rec" class="view"><header class="top"><h1>記録一覧</h1><button id="bPrint" aria-label="PDF出力">🖨 PDF</button></header><main><div id="list"></div></main></section>
+<section id="stat" class="view"><header class="top"><h1>統計</h1></header><main><div id="statB"></div></main></section>
+<div class="fab"><button id="bLater" class="warn" style="flex:0 0 36%">⚡ あとで記録</button><button id="bNew" class="pri">＋ 釣果を記録</button></div>
+<nav class="tabs"><button data-t="home">🏠<span>ホーム</span></button><button data-t="rec">📖<span>記録</span></button><button data-t="stat">📊<span>統計</span></button><button data-t="set">⚙<span>設定</span></button></nav>
+<div id="toast"></div>
 
 <!-- 記録フォーム -->
 <section id="form" class="view">
@@ -156,6 +187,12 @@ body{padding:0}
 <section id="set" class="view">
 <header class="top"><button id="sBack">‹ 戻る</button><h1>設定・ヘルプ</h1></header>
 <main>
+ <div class="card"><h2>表示・安全</h2>
+  <label class="ck"><input type="checkbox" id="s_night"><span>ナイトモード（暗め・赤系）</span></label>
+  <label class="ck"><input type="checkbox" id="s_big"><span>大きい文字・大きいボタン</span></label>
+  <div class="two"><div><label for="s_ww">風の警告（m/s以上）</label><input id="s_ww" type="number" inputmode="decimal" step="0.5"></div><div><label for="s_wv">波の警告（m以上）</label><input id="s_wv" type="number" inputmode="decimal" step="0.1"></div></div>
+  <button id="s_ui" class="pri" style="width:100%;margin-top:10px">警告の基準を保存</button></div>
+ <div class="card"><h2>タックルの選択肢</h2><p class="hint">1行に1つ入力します。保存すると、記録フォームのプルダウンに反映されます。</p><div id="tkEd"></div><button id="tkSave" class="pri" style="width:100%;margin-top:10px">選択肢を保存</button><button id="tkRst" class="ghost" style="width:100%;margin-top:8px">初期の選択肢に戻す</button></div>
  <div class="card"><h2>潮汐の設定</h2>
   <label for="s_port">基準の検潮所</label><select id="s_port"></select>
   <label for="s_off">時刻補正（分・遅らせる＋／早める－）</label><input id="s_off" type="number" inputmode="numeric" step="1" value="0">
@@ -360,6 +397,7 @@ function renderLoc(){
  $('#jma').href=env.muni?`https://www.jma.go.jp/bosai/warning/#area_type=class20s&area_code=${env.muni}00&lang=ja`:'https://www.jma.go.jp/bosai/warning/';
 }
 function renderWx(){
+ $('#wxs').textContent=env.stale?'⚠ 保存済みの情報（'+fmt(env.t)+' 時点）':'';renderWarn();renderSum();
  const w=env.w;if(!w){$('#wx').textContent=env.wxErr||'取得待ち…';return}
  $('#wx').innerHTML=`<div class="grid">
  <div class="tile"><b>${w.icon} ${e(w.label)}</b><span>天気</span></div>
@@ -383,7 +421,7 @@ function renderTide(){
  let label;if(near){label=(el<=nxt.t-now?prev.type:nxt.type)==='H'?'満潮前後':'干潮前後'}else{label=(prev.type==='L'?'上げ':'下げ')+Math.max(1,Math.min(9,Math.round(el/tot*10)))+'分'}
  const mn=Math.round(el/6e4);
  const nh=ex.find(x=>x.t>now&&x.type==='H'),nl=ex.find(x=>x.t>now&&x.type==='L');
- env.tideTxt=`${wk[0].n}・${label}（次の${nxt.type==='H'?'満潮':'干潮'} ${hm(nxt.t)}）`;
+ env.tideShort=`${wk[0].n}・${label}`;env.tideTxt=`${wk[0].n}・${label}（次の${nxt.type==='H'?'満潮':'干潮'} ${hm(nxt.t)}）`;
  $('#td').textContent=label;
  $('#td2').textContent=`${prev.type==='L'?'干潮':'満潮'}から${Math.floor(mn/60)?Math.floor(mn/60)+'時間':''}${mn%60}分経過`;
  $('#tdn').innerHTML=`<div>次の満潮<b>${nh?hm(nh.t):'—'}</b></div><div>次の干潮<b>${nl?hm(nl.t):'—'}</b></div>`;
@@ -392,18 +430,21 @@ function renderTide(){
  for(let i=0;i<=N;i++){const t=a+(b-a)*i/N,h=tideH(P,t,off);pts.push([t,h]);mn_=Math.min(mn_,h);mx_=Math.max(mx_,h)}
  const X=t=>(t-a)/(b-a)*340,Y=h=>58-(h-mn_)/(mx_-mn_||1)*46;
  const path=pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join('');
+ const hn=tideH(P,now,off);document.querySelector('.tide').style.setProperty('--tb',`hsl(205,55%,${12+Math.round((hn-mn_)/((mx_-mn_)||1)*16)}%)`);
  const marks=ex.filter(x=>x.t>a&&x.t<b).map(x=>`<circle cx="${X(x.t).toFixed(1)}" cy="${Y(tideH(P,x.t,off)).toFixed(1)}" r="3" fill="#f0b429"/><text x="${X(x.t).toFixed(1)}" y="${x.type==='H'?Y(tideH(P,x.t,off))-6:Y(tideH(P,x.t,off))+14}" font-size="10" fill="#fff" text-anchor="middle">${hm(x.t)}</text>`).join('');
- $('#tdc').innerHTML=`<svg viewBox="0 0 340 74" role="img" aria-label="今後24時間の潮位曲線"><path d="${path}" fill="none" stroke="#7fd1c9" stroke-width="2.5"/><line x1="${X(now).toFixed(1)}" x2="${X(now).toFixed(1)}" y1="2" y2="66" stroke="#f0b429" stroke-dasharray="3 3"/>${marks}</svg>`;
+ $('#tdc').innerHTML=`<svg viewBox="0 0 340 74" role="img" aria-label="今後24時間の潮位曲線"><path d="${path}" fill="none" stroke="#7fd1c9" stroke-width="2.5"/><line x1="${X(now).toFixed(1)}" x2="${X(now).toFixed(1)}" y1="2" y2="66" stroke="#f0b429" stroke-dasharray="3 3"/>${marks}<circle cx="${X(now).toFixed(1)}" cy="${Y(hn).toFixed(1)}" r="5.5" fill="#fff" stroke="#f0b429" stroke-width="2.5"/><text x="${X(now).toFixed(1)}" y="${Math.max(10,Y(hn)-9).toFixed(1)}" font-size="11" font-weight="700" fill="#f0b429" text-anchor="middle">今</text></svg>`;
  const om=(env.om||[]).filter(x=>x.t>now),oh=om.find(x=>x.type==='H'),ol=om.find(x=>x.type==='L');
  $('#tdo').innerHTML='<b>参考値（Open-Meteo海面高度モデル）</b><br>'+(oh||ol?`次の満潮 ${oh?hm(oh.t):'—'}／次の干潮 ${ol?hm(ol.t):'—'}（1時間刻み・目安）`:env.om===undefined?'位置情報の取得後に表示されます':'この地点では取得できませんでした');
  $('#tdp').textContent=`基準：${P.n}（気象庁の調和定数による推算・目安）${off?`／補正${off>0?'+':''}${off}分`:''}`;
- $('#tdl').href=$('#s_jma').href=jmaURL(P.code);$('#tdl').textContent='📖 気象庁の潮位表（'+P.n+'）を開く';$('#s_jma').textContent='📖 気象庁の潮位表（'+P.n+'・今日から3日分）を開く';
+ renderSun();renderSum();renderTrip();$('#tdl').href=$('#s_jma').href=jmaURL(P.code);$('#tdl').textContent='📖 気象庁の潮位表（'+P.n+'）を開く';$('#s_jma').textContent='📖 気象庁の潮位表（'+P.n+'・今日から3日分）を開く';
 }
+const tName=r=>((r.tide||'').match(/^(大潮|中潮|小潮|長潮|若潮)/)||[])[1]||'不明';
 async function renderList(){
  records=(await getAll()).sort((a,b)=>b.ts-a.ts);
- $('#list').innerHTML=records.length?records.map(r=>`<button class="item" data-id="${r.id}">${r.photo?`<img src="${r.photo}" alt="">`:'<div class="ni">写真なし</div>'}<div><b>${e(r.species||'魚種未記入')}${r.size?'　'+e(r.size)+'cm':''}${r.count?'　×'+e(r.count):''}</b><span>${fmt(r.ts)}</span><span>${e(r.place)}</span></div></button>`).join(''):'<div class="empty">まだ記録がありません。<br>下のボタンから最初の1匹を記録しましょう。</div>';
+ const best={};records.forEach(r=>{const z=parseFloat(r.size)||0;if(r.species&&z>(best[r.species]||0))best[r.species]=z});
+ $('#list').innerHTML=records.length?records.map(r=>{const tn=tName(r),z=parseFloat(r.size)||0;return `<button class="item" data-id="${r.id}">${r.photo?`<img src="${r.photo}" alt="">`:'<div class="ni">写真なし</div>'}<div><b>${e(r.species||'魚種未記入')}${r.size?'　'+e(r.size)+'cm':''}${r.count?'　×'+e(r.count):''}</b><span>${fmt(r.ts)}</span><span>${e(r.place)}</span><div class="tg">${tn!=='不明'?`<i>${tn}</i>`:''}${r.species&&z&&z===best[r.species]?'<i class="pb">🏆自己ベスト</i>':''}${r.later?'<i class="lt">⏳追記待ち</i>':''}</div></div></button>`}).join(''):'<div class="empty">まだ記録がありません。<br>下のボタンから最初の1匹を記録しましょう。</div>';
  $('#spList').innerHTML=[...new Set(records.map(r=>r.species).filter(Boolean))].map(s=>`<option value="${e(s)}">`).join('');
- $('#cnt').textContent=`保存中の記録：${records.length}件`;
+ $('#cnt').textContent=`保存中の記録：${records.length}件`;renderBk();renderTrip();
 }
 
 /* ---------- 環境データ取得 ---------- */
@@ -413,7 +454,7 @@ async function refresh(){
  try{
   const p=await new Promise((ok,ng)=>navigator.geolocation?navigator.geolocation.getCurrentPosition(ok,ng,{enableHighAccuracy:true,timeout:15000,maximumAge:30000}):ng(new Error('この端末は位置情報に非対応です')));
   env.lat=p.coords.latitude;env.lon=p.coords.longitude;
- }catch(err){setSt('位置情報を取得できません（'+(err.message||'許可が必要です')+'）。GPSを許可し、HTTPSで開いてください。（'+location.protocol+'）');env.place='現在地不明（位置情報が取得できません）';$('#loc').textContent=env.place;renderTide();return}
+ }catch(err){setSt('位置情報を取得できません（'+(err.message||'許可が必要です')+'）。GPSを許可し、HTTPSで開いてください。（'+location.protocol+'）');if(env.lat==null){env.place='現在地不明（位置情報が取得できません）';$('#loc').textContent=env.place}else{setSt('位置情報が取れないため、保存済みの情報を表示中');renderLoc();renderWx()};renderTide();return}
  renderLoc();renderTide();setSt('気象・海象を取得中…');
  const {lat,lon}=env;
  const jobs=[
@@ -435,15 +476,16 @@ async function refresh(){
     if(hi||lo){const d=Y[i-1]-2*Y[i]+Y[i+1],dx=d?0.5*(Y[i-1]-Y[i+1])/d:0;ex.push({t:new Date(T[i]).getTime()+dx*36e5,type:hi?'H':'L'})}}env.om=ex}else env.om=b.status==='fulfilled'?[]:null;
   if(b.status==='fulfilled'&&b.value.current){const c=b.value.current;if(c.wave_height!=null)w.wave=c.wave_height.toFixed(1);if(c.sea_surface_temperature!=null)w.sst=c.sea_surface_temperature.toFixed(1)}
   if(a.status!=='fulfilled'){env.wxErr='気象データを取得できませんでした：'+(a.reason&&a.reason.message||'通信エラー')+'（HTTPSで開いているか確認してください）'}
-  env.w=a.status==='fulfilled'||b.status==='fulfilled'?w:null;
+  if(a.status!=='fulfilled'&&b.status!=='fulfilled'){env.wxErr=env.w?'通信できないため、保存済みの情報を表示中':'気象データを取得できませんでした';renderWx();return}
+  env.w=w;env.stale=0;
   env.wx=w.label;env.temp=w.temp==='—'?'':w.temp;env.windTxt=w.dir==='—'?'':`${w.dir}の風 ${w.spd}m/s`;env.wave=w.wave==='—'?'':w.wave;env.sst=w.sst==='—'?'':w.sst;
   renderWx()})()];
  await Promise.allSettled(jobs);
- setSt('最終更新 '+hm(Date.now()));renderTide();
+ setSt('最終更新 '+hm(Date.now()));env.stale=0;saveEnv();renderTide();renderWx();
 }
 
 /* ---------- 画面切替 ---------- */
-function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));window.scrollTo(0,0)}
+function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));document.body.dataset.v=id;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===id));window.scrollTo(0,0)}
 
 /* 元の写真(JPEG)のEXIFのモデル名の末尾とソフトウェア名に「釣果ノート」を書き込む（他の情報はそのまま） */
 async function tagExif(file){
@@ -482,7 +524,10 @@ const TK=[
 ['rod','ロッド',['エメラルダスＸ86ML','TsulinoCHILLAXカワハギ','ジギンガーＺ','テレショーティ改','鱒レンジャー月光夜刀'],'ジギンガーＺ'],
 ['reel','リール',['エメラルダスＸ 2500','レガリス23 2500','カーディナルⅢSX 2500','カーディナルⅢSTX 3000'],'レガリス23 2500'],
 ['lt','ラインの種類',['PE','ナイロン','エステル'],'PE'],
-['lw','ラインの太さ（号）',['0.6','0.8','1.0','2.0','3.0','4.0'],'0.8']];
+['lw','ラインの太さ（号）',['0.6','0.8','1.0','2.0','3.0','4.0'],'0.8'],
+['bait','エサ・ルアー',['オキアミ','アオイソメ','サビキ','ジグ','ワーム','ミノー'],''],
+['wt','重さ',['0.5g','1g','3g','5g','7g','10g','20g','30g','40g'],''],
+['col','色',['ピンク','グロー','ゴールド','シルバー','ブルー','オレンジ','チャート'],'']];
 $('#tk').innerHTML=TK.map(t=>`<label for="t_${t[0]}">${t[1]}</label><select id="t_${t[0]}"><option value="">（未選択）</option>${t[2].map(o=>`<option value="${e(o)}">${e(o)}</option>`).join('')}<option value="__o">その他（自由入力）</option></select><input id="t_${t[0]}_o" placeholder="自由に入力" style="margin-top:6px" hidden>`).join('');
 TK.forEach(t=>$('#t_'+t[0]).addEventListener('change',()=>{const o=$('#t_'+t[0]+'_o'),x=$('#t_'+t[0]).value==='__o';o.hidden=!x;if(x)o.focus()}));
 function setTk(k,v){const sel=$('#t_'+k),o=$('#t_'+k+'_o'),opts=[...sel.options].map(x=>x.value);
@@ -499,20 +544,24 @@ function openForm(r){
 }
 async function save(){
  const ts=new Date($('#f_ts').value).getTime()||Date.now();
- const rec=Object.assign({},cur||{},{ts,photo,species:$('#f_sp').value.trim(),size:$('#f_size').value.trim(),count:$('#f_cnt').value.trim(),place:$('#f_place').value.trim(),port:$('#f_port').value.trim(),wx:$('#f_wx').value.trim(),temp:$('#f_temp').value.trim(),wind:$('#f_wind').value.trim(),wave:$('#f_wave').value.trim(),sst:$('#f_sst').value.trim(),tide:$('#f_tide').value.trim(),memo:$('#f_memo').value.trim(),rod:getTk('rod'),reel:getTk('reel'),lt:getTk('lt'),lw:getTk('lw'),lat:cur?cur.lat:env.lat,lon:cur?cur.lon:env.lon});
+ const rec=Object.assign({},cur||{},{ts,photo,species:$('#f_sp').value.trim(),size:$('#f_size').value.trim(),count:$('#f_cnt').value.trim(),place:$('#f_place').value.trim(),port:$('#f_port').value.trim(),wx:$('#f_wx').value.trim(),temp:$('#f_temp').value.trim(),wind:$('#f_wind').value.trim(),wave:$('#f_wave').value.trim(),sst:$('#f_sst').value.trim(),tide:$('#f_tide').value.trim(),memo:$('#f_memo').value.trim(),rod:getTk('rod'),bait:getTk('bait'),wt:getTk('wt'),col:getTk('col'),reel:getTk('reel'),lt:getTk('lt'),lw:getTk('lw'),lat:cur?cur.lat:env.lat,lon:cur?cur.lon:env.lon});
+ rec.later=!(rec.species||rec.photo);if(!cur){const t=curTrip();if(t)rec.tripId=t.id}
+ const pb=isPB(rec);
  try{await put(rec)}catch(x){alert('保存に失敗しました：'+x.message);return}
- await renderList();show('home');
+ await renderList();show('home');if(pb)toast('🏆 自己ベスト更新！'+rec.species+' '+rec.size+'cm');
 }
 
 /* ---------- バックアップ ---------- */
 async function exportJSON(){
- const data={app:'tsuri-note',version:1,exported:new Date().toISOString(),settings:cfg,records:await getAll()};
+ cfg.lastBk=Date.now();await kvSet('cfg',cfg);renderBk();
+ const data={app:'tsuri-note',version:1,exported:new Date().toISOString(),settings:cfg,records:await getAll(),trips};
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));
  a.download=`tsuri-backup-${toLocalIn(Date.now()).slice(0,10)}.json`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}
 async function importJSON(file){
  try{const d=JSON.parse(await file.text());if(!d||!Array.isArray(d.records))throw new Error('形式が正しくありません');
   const ex=await getAll(),keys=new Set(ex.map(r=>r.ts+'|'+r.species+'|'+r.size));let n=0;
   for(const r of d.records){const k=r.ts+'|'+r.species+'|'+r.size;if(keys.has(k))continue;delete r.id;await put(r);keys.add(k);n++}
+  if(Array.isArray(d.trips)){const ids=new Set(trips.map(t=>t.id));d.trips.forEach(t=>{if(!ids.has(t.id))trips.push(t)});await saveTrips()}
   if(d.settings&&d.settings.v===2){cfg=Object.assign(cfg,d.settings);await kvSet('cfg',cfg)}
   await renderList();renderTide();alert(`${n}件を読み込みました（重複は除外）。`)}catch(x){alert('読み込めませんでした：'+x.message)}}
 
@@ -536,14 +585,24 @@ function askClear(){$('#mDone').classList.add('on')}
 window.addEventListener('afterprint',()=>{if(printing){printing=false;if($('#prt').classList.contains('on'))askClear()}});
 
 /* ---------- 設定 ---------- */
-function openSet(){$('#s_exif').checked=cfg.exifTag!==false;$('#ic_name').value=icn.name||'釣果ノート';$('#ic_tx').value=ICON_SY.includes(icn.sym)?'':(icn.sym||'');const s=$('#s_port');s.innerHTML='<option value="auto">自動（最寄りの検潮所）</option>'+PORTS.map((p,i)=>`<option value="${i}">${e(p[0])}</option>`).join('');s.value=cfg.port;$('#s_off').value=cfg.off||0;
+function openSet(){$('#s_night').checked=!!cfg.night;$('#s_big').checked=!!cfg.big;$('#s_ww').value=cfg.ww??10;$('#s_wv').value=cfg.wv??2;$('#tkEd').innerHTML=TK.map(t=>`<label>${t[1]}</label><textarea id="te_${t[0]}" style="min-height:90px">${e(optsOf(t).join('\n'))}</textarea>`).join('');$('#s_exif').checked=cfg.exifTag!==false;$('#ic_name').value=icn.name||'釣果ノート';$('#ic_tx').value=ICON_SY.includes(icn.sym)?'':(icn.sym||'');const s=$('#s_port');s.innerHTML='<option value="auto">自動（最寄りの検潮所）</option>'+PORTS.map((p,i)=>`<option value="${i}">${e(p[0])}</option>`).join('');s.value=cfg.port;$('#s_off').value=cfg.off||0;
  const nh=(env.om||[]).find(x=>x.type==='H'&&x.t>Date.now());
  if(nh){$('#s_hi').value=hm(nh.t);$('#s_hi_note').textContent='初期値：Open-Meteoの推定（'+hm(nh.t)+'）。上の気象庁の潮位表で確認できた場合は、その時刻に書き換えてください（そちらの方が正確です）。'}
  else{$('#s_hi').value='';$('#s_hi_note').textContent='Open-Meteoの推定時刻を取得できていません。気象庁の潮位表で次の満潮時刻を確認して入力してください。'}
  show('set')}
 
 /* ---------- イベント ---------- */
-$('#bRef').onclick=refresh;$('#bNew').onclick=()=>openForm();$('#bSet').onclick=openSet;
+$('#bRef').onclick=refresh;$('#bNew').onclick=()=>openForm();document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{const t=b.dataset.t;if(t==='set')openSet();else if(t==='stat'){renderStats();show('stat')}else show(t)});
+$('#bLater').onclick=quick;$('#bBk').onclick=exportJSON;
+$('#bNight').onclick=async()=>{cfg.night=!cfg.night;applyUI();await kvSet('cfg',cfg)};
+$('#s_night').onchange=async()=>{cfg.night=$('#s_night').checked;applyUI();await kvSet('cfg',cfg)};
+$('#s_big').onchange=async()=>{cfg.big=$('#s_big').checked;applyUI();await kvSet('cfg',cfg)};
+$('#s_ui').onclick=async()=>{cfg.ww=parseFloat($('#s_ww').value)||10;cfg.wv=parseFloat($('#s_wv').value)||2;await kvSet('cfg',cfg);renderWarn();toast('警告の基準を保存しました')};
+$('#tkSave').onclick=async()=>{cfg.tkOpts={};TK.forEach(t=>cfg.tkOpts[t[0]]=$('#te_'+t[0]).value.split('\n').map(x=>x.trim()).filter(Boolean));await kvSet('cfg',cfg);buildTk();toast('選択肢を保存しました')};
+$('#tkRst').onclick=async()=>{delete cfg.tkOpts;await kvSet('cfg',cfg);buildTk();openSet();toast('初期の選択肢に戻しました')};
+$('#tripc').onclick=async ev=>{if(!ev.target.closest('#bTrip'))return;const t=curTrip();
+ if(!t){trips.push({id:Date.now(),start:Date.now(),place:env.place||'',port:env.portTxt||'',tn:(env.tideShort||'').split('・')[0],tide:env.tideTxt||'',wx:env.wx||'',temp:env.temp||'',wind:env.windTxt||'',wave:env.wave||'',sst:env.sst||'',lat:env.lat,lon:env.lon});await saveTrips();renderTrip();toast('🎣 釣行を開始しました')}
+ else{t.end=Date.now();await saveTrips();const n=records.filter(r=>r.tripId===t.id).length;renderTrip();toast(n?`釣行を終了（釣果 ${n}件）`:'釣行を終了（ボウズ）')}};
 $('#fBack').onclick=()=>show('home');$('#sBack').onclick=()=>show('home');$('#pBack').onclick=()=>show('home');
 $('#list').onclick=ev=>{const b=ev.target.closest('.item');if(b)openForm(records.find(r=>r.id===+b.dataset.id))};
 $('#bPhoto').onclick=()=>$('#f_photo').click();
@@ -571,7 +630,7 @@ $('#impf').onchange=ev=>{if(ev.target.files[0])importJSON(ev.target.files[0]);ev
 $('#bPers').onclick=async()=>{try{const ok=navigator.storage&&navigator.storage.persist?await navigator.storage.persist():false;alert(ok?'永続保存が許可されました。':'永続保存は許可されませんでした。ホーム画面に追加し、バックアップを併用してください。')}catch(x){alert('この環境では利用できません。')}};
 $('#bAll').onclick=()=>{if(!records.length){alert('削除できる記録がありません。');return}$('#mAllT').textContent=`保存中の ${records.length} 件の記録（写真を含む）をすべて削除します。`;$('#mAll').classList.add('on')};
 $('#mAllN').onclick=()=>$('#mAll').classList.remove('on');$('#mAllBk').onclick=exportJSON;
-$('#mAllY').onclick=async()=>{try{await tx('rec','readwrite',st=>st.clear())}catch(x){alert('削除に失敗しました：'+x.message);return}$('#mAll').classList.remove('on');await renderList();alert('すべての記録を削除しました。')};
+$('#mAllY').onclick=async()=>{try{await tx('rec','readwrite',st=>st.clear())}catch(x){alert('削除に失敗しました：'+x.message);return}$('#mAll').classList.remove('on');trips=[];await saveTrips();await renderList();alert('すべての記録を削除しました。')};
 $('#bPrint').onclick=openPrint;$('#bPrint2').onclick=()=>{show('home');openPrint()};
 $('#pN').onchange=buildPrint;$('#pM').onchange=async()=>{cfg.pm4=$('#pM').value;await kvSet('cfg',cfg);buildPrint()};$('#pGo').onclick=doPrint;$('#pDone').onclick=askClear;
 $('#mKeep').onclick=()=>{$('#mDone').classList.remove('on');show('home')};
@@ -580,7 +639,7 @@ $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$(
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-19r';
+const VER='2026-11-19s';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};
@@ -604,13 +663,59 @@ async function checkUpdate(manual){try{const r=await fetch(location.pathname+'?c
  catch(x){if(manual)alert('確認できませんでした。通信状況を確認してください。')}}
 async function doUpdate(){try{await fetch(location.pathname,{cache:'reload'})}catch(x){}location.reload()}
 $('#bUpd').onclick=doUpdate;$('#bChk').onclick=()=>checkUpdate(true);
+/* ---------- 新機能 ---------- */
+let tmr,trips=[];
+const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(tmr);tmr=setTimeout(()=>t.style.display='none',3000)};
+const hmm=ms=>{const m=Math.max(0,Math.round(ms/6e4));return(m>=60?Math.floor(m/60)+'時間':'')+(m%60)+'分'};
+function applyUI(){document.body.classList.toggle('night',!!cfg.night);document.body.classList.toggle('big',!!cfg.big);document.querySelector('meta[name=theme-color]').content=cfg.night?'#2a1212':'#14293a'}
+const optsOf=t=>(cfg.tkOpts&&cfg.tkOpts[t[0]])||t[2];
+function buildTk(){const keep={};TK.forEach(t=>keep[t[0]]=getTk(t[0]));
+ $('#tk').innerHTML=TK.map(t=>`<label for="t_${t[0]}">${t[1]}</label><select id="t_${t[0]}"><option value="">（未選択）</option>${optsOf(t).map(o=>`<option value="${e(o)}">${e(o)}</option>`).join('')}<option value="__o">その他（自由入力）</option></select><input id="t_${t[0]}_o" placeholder="自由に入力" style="margin-top:6px" hidden>`).join('');
+ TK.forEach(t=>{$('#t_'+t[0]).addEventListener('change',()=>{const o=$('#t_'+t[0]+'_o'),x=$('#t_'+t[0]).value==='__o';o.hidden=!x;if(x)o.focus()});setTk(t[0],keep[t[0]])})}
+/* 日の出・日の入り（NOAA簡易式） */
+function sunEq(lat,lon,t){const R=Math.PI/180,n=Math.ceil(Math.floor((t+9*36e5)/864e5)+2440588-2451545+0.0008),Js=n-lon/360,M=(357.5291+0.98560028*Js)%360,
+ C=1.9148*Math.sin(M*R)+0.02*Math.sin(2*M*R)+0.0003*Math.sin(3*M*R),L=(M+C+180+102.9372)%360,Jt=2451545+Js+0.0053*Math.sin(M*R)-0.0069*Math.sin(2*L*R),
+ sd=Math.sin(L*R)*Math.sin(23.4397*R),w=(Math.sin(-0.833*R)-Math.sin(lat*R)*sd)/(Math.cos(lat*R)*Math.cos(Math.asin(sd)));if(Math.abs(w)>1)return null;
+ const w0=Math.acos(w)/R,ms=J=>(J-2440587.5)*864e5;return{rise:ms(Jt-w0/360),set:ms(Jt+w0/360)}}
+function renderSun(){const P=curPort(),s=sunEq(env.lat??P.la,env.lon??P.lo,Date.now()),box=$('#sun');if(!s){box.textContent='この地域では計算できません';return}
+ const now=Date.now(),M=6e4,mw=[s.rise-30*M,s.rise+60*M],ew=[s.set-60*M,s.set+30*M];
+ const st=now>=mw[0]&&now<=mw[1]?'🔥 朝マヅメ中':now>=ew[0]&&now<=ew[1]?'🔥 夕マヅメ中':now<s.rise?`日の出まで${hmm(s.rise-now)}`:now<s.set?`日没まで${hmm(s.set-now)}`:'日没後';
+ box.innerHTML=`<div class="big" style="font-size:19px">${st}</div>🌅 日の出 <b>${hm(s.rise)}</b>　🌇 日没 <b>${hm(s.set)}</b><br>朝マヅメ <b>${hm(mw[0])}〜${hm(mw[1])}</b><br>夕マヅメ <b>${hm(ew[0])}〜${hm(ew[1])}</b><br><small>マヅメは日の出の30分前〜1時間後、日没の1時間前〜30分後の目安です。</small>`;env.sunTxt=st}
+function renderSum(){const p=[];if(env.tideShort)p.push(env.tideShort);if(env.w&&env.w.dir!=='—')p.push(`${env.w.dir}${env.w.spd}m/s`);if(env.w&&env.w.wave!=='—')p.push(`波${env.w.wave}m`);if(env.sunTxt)p.push(env.sunTxt);$('#sum').textContent=p.join('・')||'取得中…'}
+function renderWarn(){const w=env.w,b=$('#warn');if(!w){b.hidden=true;return}const ww=cfg.ww??10,wv=cfg.wv??2,m=[];
+ if(parseFloat(w.spd)>=ww)m.push(`風 ${w.spd}m/s（基準 ${ww}）`);if(parseFloat(w.wave)>=wv)m.push(`波高 ${w.wave}m（基準 ${wv}）`);
+ b.hidden=!m.length;b.innerHTML='⚠ 荒れ注意：'+m.join('／')+'<br><small>無理をせず、安全を最優先にしてください。</small>'}
+function renderBk(){const d=cfg.lastBk?(Date.now()-cfg.lastBk)/864e5:999,b=$('#bkn');b.hidden=!(records.length>0&&d>30);if(!b.hidden)$('#bknT').textContent=cfg.lastBk?`💾 最後のバックアップから${Math.floor(d)}日たっています`:'💾 まだバックアップを書き出していません'}
+const saveEnv=()=>kvSet('envc',{t:Date.now(),lat:env.lat,lon:env.lon,place:env.place,muni:env.muni,w:env.w,hours:env.hours,wx:env.wx,temp:env.temp,windTxt:env.windTxt,wave:env.wave,sst:env.sst,om:env.om}).catch(()=>{});
+const loadTrips=async()=>{trips=(await kvGet('trips'))||[]},saveTrips=()=>kvSet('trips',trips),curTrip=()=>trips.find(t=>!t.end);
+function renderTrip(){const t=curTrip(),c=$('#tripc');
+ c.innerHTML=t?`<h2>釣行中</h2><div class="big" style="font-size:19px">${hm(t.start)}〜（${hmm(Date.now()-t.start)}経過）</div><div class="sub">${e(t.place||'')}　釣果 ${records.filter(r=>r.tripId===t.id).length}件</div><button id="bTrip" class="warn" style="width:100%;margin-top:8px">釣行を終了</button>`
+ :'<h2>釣行</h2><div class="sub">「釣行を開始」で条件を保存します。釣れなかった日（ボウズ）も統計に入ります。</div><button id="bTrip" class="pri" style="width:100%;margin-top:8px">🎣 釣行を開始</button>'}
+async function quick(){const r={ts:Date.now(),species:'',size:'',count:'',place:env.place||'',port:env.portTxt||'',wx:env.wx||'',temp:env.temp??'',wind:env.windTxt||'',wave:env.wave??'',sst:env.sst??'',tide:env.tideTxt||'',memo:'',lat:env.lat,lon:env.lon,later:true};
+ TK.forEach(t=>r[t[0]]=t[3]);const t=curTrip();if(t)r.tripId=t.id;await put(r);await renderList();toast('⚡ 記録しました（写真・魚種はあとで追記）')}
+function isPB(rec){const z=parseFloat(rec.size);if(!rec.species||!(z>0))return false;const mx=Math.max(0,...records.filter(r=>r.species===rec.species&&r.id!==rec.id).map(r=>parseFloat(r.size)||0));return mx>0&&z>mx}
+function renderStats(){const R=records,B=$('#statB'),fish=r=>parseInt(r.count)||1;
+ if(!R.length&&!trips.length){B.innerHTML='<div class="empty">記録がたまると、ここに傾向が出ます。</div>';return}
+ const stage=r=>{const t=r.tide||'';return/満潮前後/.test(t)?'満潮前後':/干潮前後/.test(t)?'干潮前後':/上げ\d分/.test(t)?'上げ潮':/下げ\d分/.test(t)?'下げ潮':'不明'},
+ hr=r=>{const h=new Date(r.ts).getHours();return h>=4&&h<9?'朝(4〜9時)':h<15&&h>=9?'昼(9〜15時)':h>=15&&h<19?'夕(15〜19時)':'夜(19〜4時)'};
+ const bars=(title,f,order)=>{const m={};order.forEach(k=>m[k]=0);R.forEach(r=>{const k=f(r);m[k]=(m[k]||0)+fish(r)});const mx=Math.max(1,...order.map(k=>m[k])),top=order.reduce((a,k)=>m[k]>m[a]?k:a,order[0]);
+  return `<div class="card"><h2>${title}</h2>${order.map(k=>`<div class="bar2${k===top&&m[k]>0?' top':''}"><b>${e(k)}</b><div><s style="width:${m[k]/mx*100}%"></s></div><em>${m[k]}匹</em></div>`).join('')}</div>`};
+ const tr=trips.map(t=>({t,k:R.filter(r=>r.tripId===t.id).length})),hit=tr.filter(x=>x.k>0).length;
+ const tn=['大潮','中潮','小潮','長潮','若潮'].map(n=>{const x=tr.filter(y=>y.t.tn===n),h=x.filter(y=>y.k>0).length;return{n,t:x.length,h}}).filter(x=>x.t);
+ const pb={};R.forEach(r=>{const z=parseFloat(r.size)||0;if(r.species&&z>0&&(!pb[r.species]||z>pb[r.species].z))pb[r.species]={z,ts:r.ts}});
+ B.innerHTML=`<div class="card"><h2>全体</h2><div class="big" style="font-size:19px">${R.length}件・${R.reduce((a,r)=>a+fish(r),0)}匹・${new Set(R.map(r=>r.species).filter(Boolean)).size}魚種</div>${tr.length?`<div class="sub">釣行 ${tr.length}回／釣れた ${hit}回／ボウズ ${tr.length-hit}回（ボウズ率 ${Math.round((tr.length-hit)/tr.length*100)}％）</div>`:'<div class="sub">ホームの「釣行を開始」を使うと、ボウズの日も数えられます。</div>'}</div>`
+ +(tn.length?`<div class="card"><h2>潮名ごとの釣行（釣れた割合）</h2>${tn.map(x=>`<div class="bar2"><b>${x.n}</b><div><s style="width:${x.h/x.t*100}%"></s></div><em>${x.h}/${x.t}</em></div>`).join('')}</div>`:'')
+ +bars('潮名ごとの釣果',tName,['大潮','中潮','小潮','長潮','若潮','不明'])+bars('時間帯ごとの釣果',hr,['朝(4〜9時)','昼(9〜15時)','夕(15〜19時)','夜(19〜4時)'])+bars('潮の向きごとの釣果',stage,['上げ潮','下げ潮','満潮前後','干潮前後','不明'])
+ +`<div class="card"><h2>🏆 自己ベスト</h2>${Object.keys(pb).length?Object.keys(pb).sort((a,b)=>pb[b].z-pb[a].z).map(k=>`<div class="pbr"><b>${e(k)}</b><span>${pb[k].z}cm　<small>${fmt(pb[k].ts).slice(0,10)}</small></span></div>`).join(''):'<div class="sub">魚種とサイズを入れると表示されます。</div>'}</div>`}
+
 /* ---------- 起動 ---------- */
 (async()=>{
- tick();setInterval(tick,1000);$('#ver').textContent=$('#ver2').textContent='アプリのバージョン：'+VER;
- try{await openDB();cfg=Object.assign(cfg,(await kvGet('cfg'))||{});if(cfg.v!==2){cfg.port='auto';cfg.off=0;cfg.v=2;await kvSet('cfg',cfg)}await renderList()}
+ tick();setInterval(tick,1000);document.body.dataset.v='home';document.querySelector('.tabs button').classList.add('on');$('#ver').textContent=$('#ver2').textContent='アプリのバージョン：'+VER;
+ try{await openDB();cfg=Object.assign(cfg,(await kvGet('cfg'))||{});if(cfg.v!==2){cfg.port='auto';cfg.off=0;cfg.v=2;await kvSet('cfg',cfg)}applyUI();await loadTrips();if(cfg.tkOpts)buildTk();await renderList()}
  catch(x){$('#list').innerHTML='<div class="empty">この環境ではIndexedDBが使えません。プライベートブラウズを解除してください。</div>'}
  try{Object.assign(icn,(await kvGet('icon'))||{})}catch(x){}
  applyIcon();
+ try{const c=await kvGet('envc');if(c){Object.assign(env,c);env.t=c.t;env.stale=1;renderLoc();renderWx();setSt('保存済みの情報を表示中（更新中…）')}}catch(x){}
  renderTide();setInterval(renderTide,30000);
  refresh();checkUpdate();
 })();

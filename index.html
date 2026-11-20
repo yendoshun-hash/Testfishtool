@@ -121,6 +121,8 @@ body.night .sub,body.night .hint{color:#c9857a}body.night .tile,body.night .hr,b
 }
 body.night .sumc{background:linear-gradient(135deg,#2a1212,#4a1c16);color:#ffb4a6}
 body.big{font-size:19px}body.big button,body.big .btn{min-height:60px;font-size:19px}body.big input,body.big select,body.big textarea{min-height:60px;font-size:19px}body.big .chips button{min-height:52px;font-size:17px}body.big .tabs button{min-height:64px}body.big .tabs button span{font-size:13px}body.big #clk{font-size:48px}body.big .tile b{font-size:22px}
+.hl{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hl div{background:var(--foam);border-radius:10px;padding:8px 10px}.hl small{display:block;font-size:11px;color:#4b6270}.hl b{font:700 17px/1.3 var(--serif)}
+body.night .hl small{color:#c9857a}
 </style>
 </head>
 <body>
@@ -146,7 +148,12 @@ body.big{font-size:19px}body.big button,body.big .btn{min-height:60px;font-size:
  <p class="hint" id="ver2" style="text-align:center"></p>
 </main>
 </section>
-<section id="rec" class="view"><header class="top"><h1>記録一覧</h1><button id="bPrint" aria-label="PDF出力">🖨 PDF</button></header><main><div id="list"></div></main></section>
+<section id="rec" class="view"><header class="top"><h1>記録一覧</h1><button id="bPrint" aria-label="PDF出力">🖨 PDF</button></header><main>
+ <div class="card" id="flt"><input id="q" type="search" placeholder="🔍 魚種・場所・メモ・タックルで検索" autocomplete="off">
+  <div class="two" style="margin-top:8px"><select id="fq_sp"><option value="">魚種：すべて</option></select><select id="fq_tn"><option value="">潮名：すべて</option><option>大潮</option><option>中潮</option><option>小潮</option><option>長潮</option><option>若潮</option></select></div>
+  <div class="two" style="margin-top:8px"><select id="fq_pr"><option value="">期間：すべて</option><option value="30">直近30日</option><option value="90">直近90日</option><option value="365">直近1年</option></select><select id="fq_st"><option value="">状態：すべて</option><option value="later">追記待ちのみ</option><option value="pb">自己ベストのみ</option></select></div>
+  <div id="fq_n" class="sub" style="margin-top:6px"></div></div>
+ <div id="list"></div></main></section>
 <section id="stat" class="view"><header class="top"><h1>統計</h1></header><main><div id="statB"></div></main></section>
 <div class="fab"><button id="bLater" class="warn" style="flex:0 0 36%">⚡ あとで記録</button><button id="bNew" class="pri">＋ 釣果を記録</button></div>
 <nav class="tabs"><button data-t="home">🏠<span>ホーム</span></button><button data-t="rec">📖<span>記録</span></button><button data-t="stat">📊<span>統計</span></button><button data-t="set">⚙<span>設定</span></button></nav>
@@ -206,10 +213,10 @@ body.big{font-size:19px}body.big button,body.big .btn{min-height:60px;font-size:
   <label style="display:flex;gap:12px;align-items:center;margin:0"><input type="checkbox" id="s_exif" style="width:26px;min-height:26px;flex:none"><span>保存する元の写真のEXIFに「釣果ノート」を書き込む</span></label>
   <p class="hint">「元の写真を『写真』アプリに保存」を使うとき、写真のカメラ名の末尾（例：iPhone 15 Pro 釣果ノート）とソフトウェア名に「釣果ノート」を入れます。撮影日時や位置などの他の情報は変えません。JPEG形式の写真のみ対象で、書き込みはフォームで写真を選んだ時点で行われます。</p></div>
  <div class="card"><h2>バックアップ</h2>
-  <p class="hint">Safariのキャッシュ消去に備え、定期的にJSONで書き出してください（写真を含みます）。</p>
+  <p class="hint">Safariのキャッシュ消去に備え、定期的にJSONで書き出してください（写真を含みます）。</p><p class="hint">「読み込み・結合」は複数のファイルをまとめて選べます。日時・魚種・サイズ・匹数が同じ記録は重複とみなして、追加しません。</p>
   <div id="cnt" class="sub"></div>
-  <div class="row" style="margin-top:8px"><button id="bExp" class="pri">書き出し</button><button id="bImp">読み込み</button></div>
-  <input id="impf" type="file" accept="application/json,.json" hidden>
+  <div class="row" style="margin-top:8px"><button id="bExp" class="pri">書き出し</button><button id="bImp">読み込み・結合</button></div>
+  <input id="impf" type="file" accept="application/json,.json" multiple hidden>
   <button id="bPers" class="ghost" style="width:100%;margin-top:8px">ブラウザに永続保存を要求</button>
   <button id="bPrint2" class="ghost" style="width:100%;margin-top:8px">🖨 釣果をPDF出力（印刷）</button>
   <button id="bAll" class="warn" style="width:100%;margin-top:8px">🗑 全記録を削除</button></div>
@@ -444,11 +451,18 @@ function renderTide(){
 const tName=r=>((r.tide||'').match(/^(大潮|中潮|小潮|長潮|若潮)/)||[])[1]||'不明';
 async function renderList(){
  records=(await getAll()).sort((a,b)=>b.ts-a.ts);
- const best={};records.forEach(r=>{const z=parseFloat(r.size)||0;if(r.species&&z>(best[r.species]||0))best[r.species]=z});
- $('#list').innerHTML=records.length?records.map(r=>{const tn=tName(r),z=parseFloat(r.size)||0;return `<button class="item" data-id="${r.id}">${r.photo?`<img src="${r.photo}" alt="">`:'<div class="ni">写真なし</div>'}<div><b>${e(r.species||'魚種未記入')}${r.size?'　'+e(r.size)+'cm':''}${r.count?'　×'+e(r.count):''}</b><span>${fmt(r.ts)}</span><span>${e(r.place)}</span><div class="tg">${tn!=='不明'?`<i>${tn}</i>`:''}${r.species&&z&&z===best[r.species]?'<i class="pb">🏆自己ベスト</i>':''}${r.later?'<i class="lt">⏳追記待ち</i>':''}</div></div></button>`}).join(''):'<div class="empty">まだ記録がありません。<br>下のボタンから最初の1匹を記録しましょう。</div>';
- $('#spList').innerHTML=[...new Set(records.map(r=>r.species).filter(Boolean))].map(s=>`<option value="${e(s)}">`).join('');
- $('#cnt').textContent=`保存中の記録：${records.length}件`;renderBk();renderTrip();
+ const sel=$('#fq_sp'),cv=sel.value;sel.innerHTML='<option value="">魚種：すべて</option>'+[...new Set(records.map(r=>r.species).filter(Boolean))].map(x=>`<option>${e(x)}</option>`).join('');sel.value=cv;
+ $('#spList').innerHTML=[...new Set(records.map(r=>r.species).filter(Boolean))].map(x=>`<option value="${e(x)}">`).join('');
+ $('#cnt').textContent=`保存中の記録：${records.length}件`;drawList();renderBk();renderTrip();
 }
+function drawList(){const f={q:$('#q').value.trim().toLowerCase(),sp:$('#fq_sp').value,tn:$('#fq_tn').value,pr:+$('#fq_pr').value||0,st:$('#fq_st').value},best={};
+ records.forEach(r=>{const z=parseFloat(r.size)||0;if(r.species&&z>(best[r.species]||0))best[r.species]=z});
+ const ok=r=>{if(f.sp&&r.species!==f.sp)return false;if(f.tn&&tName(r)!==f.tn)return false;if(f.pr&&Date.now()-r.ts>f.pr*864e5)return false;
+  if(f.st==='later'&&!r.later)return false;if(f.st==='pb'&&!(r.species&&parseFloat(r.size)>0&&parseFloat(r.size)===best[r.species]))return false;
+  if(f.q){const hay=[r.species,r.place,r.port,r.memo,r.rod,r.reel,r.lt,r.lw,r.bait,r.wt,r.col,r.wx,r.wind,r.tide].join(' ').toLowerCase();if(!f.q.split(/\s+/).every(w=>hay.includes(w)))return false}return true};
+ const list=records.filter(ok);$('#fq_n').textContent=records.length?`${list.length} / ${records.length}件`:'';
+ $('#list').innerHTML=list.length?list.map(r=>{const tn=tName(r),z=parseFloat(r.size)||0;return `<button class="item" data-id="${r.id}">${r.photo?`<img src="${r.photo}" alt="">`:'<div class="ni">写真なし</div>'}<div><b>${e(r.species||'魚種未記入')}${r.size?'　'+e(r.size)+'cm':''}${r.count?'　×'+e(r.count):''}</b><span>${fmt(r.ts)}</span><span>${e(r.place)}</span><div class="tg">${tn!=='不明'?`<i>${tn}</i>`:''}${r.species&&z&&z===best[r.species]?'<i class="pb">🏆自己ベスト</i>':''}${r.later?'<i class="lt">⏳追記待ち</i>':''}</div></div></button>`}).join(''):`<div class="empty">${records.length?'条件に合う記録がありません。':'まだ記録がありません。<br>下のボタンから最初の1匹を記録しましょう。'}</div>`}
+['#q','#fq_sp','#fq_tn','#fq_pr','#fq_st'].forEach(x=>$(x).addEventListener(x==='#q'?'input':'change',drawList));
 
 /* ---------- 環境データ取得 ---------- */
 async function refresh(){
@@ -560,13 +574,16 @@ async function exportJSON(){
  const data={app:'tsuri-note',version:1,exported:new Date().toISOString(),settings:cfg,records:await getAll(),trips};
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));
  a.download=`tsuri-backup-${toLocalIn(Date.now()).slice(0,10)}.json`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}
-async function importJSON(file){
- try{const d=JSON.parse(await file.text());if(!d||!Array.isArray(d.records))throw new Error('形式が正しくありません');
-  const ex=await getAll(),keys=new Set(ex.map(r=>r.ts+'|'+r.species+'|'+r.size));let n=0;
-  for(const r of d.records){const k=r.ts+'|'+r.species+'|'+r.size;if(keys.has(k))continue;delete r.id;await put(r);keys.add(k);n++}
-  if(Array.isArray(d.trips)){const ids=new Set(trips.map(t=>t.id));d.trips.forEach(t=>{if(!ids.has(t.id))trips.push(t)});await saveTrips()}
-  if(d.settings&&d.settings.v===2){cfg=Object.assign(cfg,d.settings);await kvSet('cfg',cfg)}
-  await renderList();renderTide();alert(`${n}件を読み込みました（重複は除外）。`)}catch(x){alert('読み込めませんでした：'+x.message)}}
+const rk=r=>[r.ts,r.species,r.size,r.count].join('|');
+async function mergeData(d){if(!d||!Array.isArray(d.records))throw new Error('形式が正しくありません');
+ const keys=new Set((await getAll()).map(rk));let add=0,dup=0,ta=0,td=0;
+ for(const r of d.records){const k=rk(r);if(keys.has(k)){dup++;continue}delete r.id;await put(r);keys.add(k);add++}
+ if(Array.isArray(d.trips)){const ids=new Set(trips.map(t=>t.id));for(const t of d.trips){if(ids.has(t.id)){td++;continue}trips.push(t);ids.add(t.id);ta++}await saveTrips()}
+ return{add,dup,ta,td}}
+async function importFiles(fs){const out=[];let best=null;
+ for(const f of fs){try{const d=JSON.parse(await f.text()),r=await mergeData(d);out.push(`${f.name}：記録 追加${r.add}・重複${r.dup}／釣行 追加${r.ta}・重複${r.td}`);if(d.settings&&d.settings.v===2&&(!best||(d.exported||'')>(best.exported||'')))best=d}catch(x){out.push(`${f.name}：読み込めませんでした（${x.message}）`)}}
+ if(best){cfg=Object.assign(cfg,best.settings,{lastBk:cfg.lastBk});await kvSet('cfg',cfg);applyUI();if(cfg.tkOpts)buildTk()}
+ await renderList();renderTide();alert(out.join('\n'))}
 
 /* ---------- 印刷 ---------- */
 const row=(l,v,c)=>`<div class="c${c||2}"><dt>${l}</dt><dd>${e(v)||'—'}</dd></div>`;
@@ -631,7 +648,7 @@ $('#s_cal').onclick=async()=>{const v=$('#s_hi').value;if(!v){alert('次の満�
 $('#s_rst').onclick=async()=>{cfg.off=0;$('#s_off').value=0;await kvSet('cfg',cfg);renderTide();alert('補正を0分に戻しました。')};
 $('#bExp').onclick=exportJSON;$('#mBk').onclick=exportJSON;
 $('#bImp').onclick=()=>$('#impf').click();
-$('#impf').onchange=ev=>{if(ev.target.files[0])importJSON(ev.target.files[0]);ev.target.value=''};
+$('#impf').onchange=async ev=>{const fs=[...ev.target.files];ev.target.value='';if(fs.length)await importFiles(fs)};
 $('#bPers').onclick=async()=>{try{const ok=navigator.storage&&navigator.storage.persist?await navigator.storage.persist():false;alert(ok?'永続保存が許可されました。':'永続保存は許可されませんでした。ホーム画面に追加し、バックアップを併用してください。')}catch(x){alert('この環境では利用できません。')}};
 $('#bAll').onclick=()=>{if(!records.length){alert('削除できる記録がありません。');return}$('#mAllT').textContent=`保存中の ${records.length} 件の記録（写真を含む）をすべて削除します。`;$('#mAll').classList.add('on')};
 $('#mAllN').onclick=()=>$('#mAll').classList.remove('on');$('#mAllBk').onclick=exportJSON;
@@ -644,7 +661,7 @@ $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$(
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-20c';
+const VER='2026-11-20d';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};
@@ -701,18 +718,37 @@ function renderTrip(){const t=curTrip(),c=$('#tripc');
 async function quick(){const r={ts:Date.now(),species:'',size:'',count:'',place:env.place||'',port:env.portTxt||'',wx:env.wx||'',temp:env.temp??'',wind:env.windTxt||'',wave:env.wave??'',sst:env.sst??'',tide:env.tideTxt||'',memo:'',lat:env.lat,lon:env.lon,later:true};
  TK.forEach(t=>r[t[0]]=t[3]);const t=curTrip();if(t)r.tripId=t.id;await put(r);await renderList();toast('⚡ 記録しました（写真・魚種はあとで追記）')}
 function isPB(rec){const z=parseFloat(rec.size);if(!rec.species||!(z>0))return false;const mx=Math.max(0,...records.filter(r=>r.species===rec.species&&r.id!==rec.id).map(r=>parseFloat(r.size)||0));return mx>0&&z>mx}
-function renderStats(){const R=records,B=$('#statB'),fish=r=>parseInt(r.count)||1;
+const fishN=r=>parseInt(r.count)||1;
+const stageOf=r=>{const t=r.tide||'';return/満潮前後/.test(t)?'満潮前後':/干潮前後/.test(t)?'干潮前後':/上げ\d分/.test(t)?'上げ潮':/下げ\d分/.test(t)?'下げ潮':'不明'};
+const hrOf=r=>{const h=new Date(r.ts).getHours();return h>=4&&h<9?'朝(4〜9時)':h>=9&&h<15?'昼(9〜15時)':h>=15&&h<19?'夕(15〜19時)':'夜(19〜4時)'};
+const D8=['北','北東','東','南東','南','南西','西','北西'];
+const windDir=r=>{const m=(r.wind||'').match(/^(北北東|東北東|東南東|南南東|南南西|西南西|西北西|北北西|北東|南東|南西|北西|北|東|南|西)/);if(!m)return'不明';const i=DIRS.indexOf(m[1]);return i<0?'不明':D8[Math.round(i/2)%8]};
+const bin=(v,st,u)=>{const x=parseFloat(v);if(isNaN(x))return'不明';const a=Math.floor(x/st)*st;return`${a}〜${a+st}${u}`};
+const HI=[['潮名',tName],['時間帯',hrOf],['潮の向き',stageOf],['風向',windDir],['気温',r=>bin(r.temp,5,'℃')],['水温',r=>bin(r.sst,2,'℃')],['場所',r=>r.place||'不明']];
+let stSp='';
+function hiHTML(){const rs=records.filter(r=>r.species===stSp);if(!rs.length)return'';const tot=rs.reduce((a,r)=>a+fishN(r),0);
+ const tiles=HI.map(([l,f])=>{const m={};rs.forEach(r=>{const k=f(r);if(k!=='不明')m[k]=(m[k]||0)+fishN(r)});const ks=Object.keys(m).sort((a,b)=>m[b]-m[a]),kn=ks.reduce((a,k)=>a+m[k],0);if(!ks.length)return'';
+  const pc=k=>Math.round(m[k]/kn*100);return`<div><small>${l}</small><b>${e(ks[0])}</b><small>${pc(ks[0])}％${ks[1]?`　次点 ${e(ks[1])} ${pc(ks[1])}％`:''}</small></div>`}).join('');
+ return`<div class="sub" style="margin-bottom:8px">${e(stSp)}：${rs.length}件・${tot}匹${rs.length<5?'（件数が少ないので参考程度）':''}</div><div class="hl">${tiles}</div>`}
+$('#statB').onchange=ev=>{if(ev.target.id==='st_sp'){stSp=ev.target.value;$('#hiB').innerHTML=hiHTML()}};
+function renderStats(){const R=records,B=$('#statB'),fish=fishN;
  if(!R.length&&!trips.length){B.innerHTML='<div class="empty">記録がたまると、ここに傾向が出ます。</div>';return}
- const stage=r=>{const t=r.tide||'';return/満潮前後/.test(t)?'満潮前後':/干潮前後/.test(t)?'干潮前後':/上げ\d分/.test(t)?'上げ潮':/下げ\d分/.test(t)?'下げ潮':'不明'},
- hr=r=>{const h=new Date(r.ts).getHours();return h>=4&&h<9?'朝(4〜9時)':h<15&&h>=9?'昼(9〜15時)':h>=15&&h<19?'夕(15〜19時)':'夜(19〜4時)'};
- const bars=(title,f,order)=>{const m={};order.forEach(k=>m[k]=0);R.forEach(r=>{const k=f(r);m[k]=(m[k]||0)+fish(r)});const mx=Math.max(1,...order.map(k=>m[k])),top=order.reduce((a,k)=>m[k]>m[a]?k:a,order[0]);
-  return `<div class="card"><h2>${title}</h2>${order.map(k=>`<div class="bar2${k===top&&m[k]>0?' top':''}"><b>${e(k)}</b><div><s style="width:${m[k]/mx*100}%"></s></div><em>${m[k]}匹</em></div>`).join('')}</div>`};
+ const bars=(title,f,order)=>{const m={};if(order)order.forEach(k=>m[k]=0);R.forEach(r=>{const k=f(r);m[k]=(m[k]||0)+fish(r)});
+  const ks=order||Object.keys(m).sort((a,b)=>(a==='不明')-(b==='不明')||parseFloat(a)-parseFloat(b));if(!ks.length)return'';
+  const mx=Math.max(1,...ks.map(k=>m[k])),top=ks.reduce((a,k)=>m[k]>m[a]?k:a,ks[0]);
+  return`<div class="card"><h2>${title}</h2>${ks.map(k=>`<div class="bar2${k===top&&m[k]>0?' top':''}"><b>${e(k)}</b><div><s style="width:${m[k]/mx*100}%"></s></div><em>${m[k]}匹</em></div>`).join('')}</div>`};
  const tr=trips.map(t=>({t,k:R.filter(r=>r.tripId===t.id).length})),hit=tr.filter(x=>x.k>0).length;
  const tn=['大潮','中潮','小潮','長潮','若潮'].map(n=>{const x=tr.filter(y=>y.t.tn===n),h=x.filter(y=>y.k>0).length;return{n,t:x.length,h}}).filter(x=>x.t);
  const pb={};R.forEach(r=>{const z=parseFloat(r.size)||0;if(r.species&&z>0&&(!pb[r.species]||z>pb[r.species].z))pb[r.species]={z,ts:r.ts}});
- B.innerHTML=`<div class="card"><h2>全体</h2><div class="big" style="font-size:19px">${R.length}件・${R.reduce((a,r)=>a+fish(r),0)}匹・${new Set(R.map(r=>r.species).filter(Boolean)).size}魚種</div>${tr.length?`<div class="sub">釣行 ${tr.length}回／釣れた ${hit}回／ボウズ ${tr.length-hit}回（ボウズ率 ${Math.round((tr.length-hit)/tr.length*100)}％）</div>`:'<div class="sub">ホームの「釣行を開始」を使うと、ボウズの日も数えられます。</div>'}</div>`
+ const spc={};R.forEach(r=>{if(r.species)spc[r.species]=(spc[r.species]||0)+fish(r)});const spl=Object.keys(spc).sort((a,b)=>spc[b]-spc[a]);if(!spl.includes(stSp))stSp=spl[0]||'';
+ const sp={};trips.forEach(t=>{const k=t.place||'場所不明',n=R.filter(r=>r.tripId===t.id).reduce((a,r)=>a+fish(r),0);(sp[k]=sp[k]||{t:0,n:0}).t++;sp[k].n+=n});
+ const rank=Object.keys(sp).map(k=>({k,t:sp[k].t,n:sp[k].n,a:sp[k].n/sp[k].t})).sort((a,b)=>b.a-a.a||b.t-a.t).slice(0,10);
+ B.innerHTML=`<div class="card"><h2>全体</h2><div class="big" style="font-size:19px">${R.length}件・${R.reduce((a,r)=>a+fish(r),0)}匹・${spl.length}魚種</div>${tr.length?`<div class="sub">釣行 ${tr.length}回／釣れた ${hit}回／ボウズ ${tr.length-hit}回（ボウズ率 ${Math.round((tr.length-hit)/tr.length*100)}％）</div>`:'<div class="sub">ホームの「釣行を開始」を使うと、ボウズの日も数えられます。</div>'}</div>`
+ +`<div class="card"><h2>🎯 魚種ごとの釣れた環境</h2>${spl.length?`<select id="st_sp">${spl.map(x=>`<option${x===stSp?' selected':''}>${e(x)}</option>`).join('')}</select><div id="hiB" style="margin-top:10px">${hiHTML()}</div>`:'<div class="sub">魚種を入れた記録がたまると表示されます。</div>'}</div>`
+ +`<div class="card"><h2>📍 釣り場ランキング（1釣行あたりの平均釣果）</h2>${rank.length?rank.map((x,i)=>`<div class="pbr"><b>${i+1}. ${e(x.k)}</b><span>${x.a.toFixed(1)}匹／回<br><small>${x.t}釣行・計${x.n}匹</small></span></div>`).join('')+'<div class="sub" style="margin-top:6px">「釣行を開始」して記録した分だけを集計します（ボウズも含みます）。</div>':'<div class="sub">「釣行を開始」して記録すると、場所ごとの平均が出ます。</div>'}</div>`
  +(tn.length?`<div class="card"><h2>潮名ごとの釣行（釣れた割合）</h2>${tn.map(x=>`<div class="bar2"><b>${x.n}</b><div><s style="width:${x.h/x.t*100}%"></s></div><em>${x.h}/${x.t}</em></div>`).join('')}</div>`:'')
- +bars('潮名ごとの釣果',tName,['大潮','中潮','小潮','長潮','若潮','不明'])+bars('時間帯ごとの釣果',hr,['朝(4〜9時)','昼(9〜15時)','夕(15〜19時)','夜(19〜4時)'])+bars('潮の向きごとの釣果',stage,['上げ潮','下げ潮','満潮前後','干潮前後','不明'])
+ +bars('潮名ごとの釣果',tName,['大潮','中潮','小潮','長潮','若潮','不明'])+bars('時間帯ごとの釣果',hrOf,['朝(4〜9時)','昼(9〜15時)','夕(15〜19時)','夜(19〜4時)'])+bars('潮の向きごとの釣果',stageOf,['上げ潮','下げ潮','満潮前後','干潮前後','不明'])
+ +bars('風向ごとの釣果',windDir,[...D8,'不明'])+bars('気温ごとの釣果',r=>bin(r.temp,5,'℃'))+bars('水温ごとの釣果',r=>bin(r.sst,2,'℃'))
  +`<div class="card"><h2>🏆 自己ベスト</h2>${Object.keys(pb).length?Object.keys(pb).sort((a,b)=>pb[b].z-pb[a].z).map(k=>`<div class="pbr"><b>${e(k)}</b><span>${pb[k].z}cm　<small>${fmt(pb[k].ts).slice(0,10)}</small></span></div>`).join(''):'<div class="sub">魚種とサイズを入れると表示されます。</div>'}</div>`}
 
 /* ---------- 起動 ---------- */

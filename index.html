@@ -123,6 +123,12 @@ body.night .sumc{background:linear-gradient(135deg,#2a1212,#4a1c16);color:#ffb4a
 body.big{font-size:19px}body.big button,body.big .btn{min-height:60px;font-size:19px}body.big input,body.big select,body.big textarea{min-height:60px;font-size:19px}body.big .chips button{min-height:52px;font-size:17px}body.big .tabs button{min-height:64px}body.big .tabs button span{font-size:13px}body.big #clk{font-size:48px}body.big .tile b{font-size:22px}
 .hl{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hl div{background:var(--foam);border-radius:10px;padding:8px 10px}.hl small{display:block;font-size:11px;color:#4b6270}.hl b{font:700 17px/1.3 var(--serif)}
 body.night .hl small{color:#c9857a}
+.loccard{position:relative;overflow:hidden}.loccard>*{position:relative}.loccard>#locbg{position:absolute;inset:0;pointer-events:none}
+#locbg .lbt{position:absolute;width:768px;height:768px;opacity:.45;filter:saturate(.85)}#locbg img{position:absolute;width:256px;height:256px}
+#locbg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,.28) 60%,rgba(255,255,255,.55))}
+#locbg .lbd{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border:3px solid var(--red);border-radius:50%;background:#ffffff88}
+.loccard>.lba{position:absolute;right:8px;bottom:3px;font-size:9px;color:#4b6270;z-index:1}
+body.night #locbg::after{background:linear-gradient(180deg,rgba(30,16,16,.74),rgba(30,16,16,.5) 60%,rgba(30,16,16,.72))}
 </style>
 </head>
 <body>
@@ -139,7 +145,7 @@ body.night .hl small{color:#c9857a}
   <div class="clock"><div><div id="clk">--:--:--</div><div id="dt">&nbsp;</div></div><button id="bRef" class="pri" style="min-width:92px">↻ 更新</button></div>
   <p id="st">位置情報を取得しています…</p>
  </div>
- <div class="card"><h2>現在地</h2><div id="loc" class="big">—</div><div id="loc2" class="sub"></div>
+ <div class="card loccard" id="locc"><div id="locbg"></div><small class="lba">画像：Esri, Maxar, Earthstar Geographics</small><h2>現在地</h2><div id="loc" class="big">—</div><div id="loc2" class="sub"></div>
   <div class="row" style="margin-top:10px"><a id="jma" class="btn warn" target="_blank" rel="noopener" href="https://www.jma.go.jp/bosai/warning/">⚠ 気象庁 注意報・警報を見る</a></div></div>
  <div class="card"><h2>気象・海象</h2><div id="wx" class="sub">取得待ち…</div><div id="wxs" class="sub" style="color:var(--red);font-weight:700"></div><div id="hours" class="hours"></div></div>
  <div class="card"><h2>日の出・日の入り・マヅメ</h2><div id="sun" class="sub">—</div></div>
@@ -205,6 +211,7 @@ body.night .hl small{color:#c9857a}
   <button id="s_save" class="pri" style="width:100%">設定を保存</button></div>
  <div class="card"><h2>表示・安全</h2>
   <label class="ck"><input type="checkbox" id="s_night"><span>ナイトモード（暗め・赤系）</span></label>
+  <label class="ck"><input type="checkbox" id="s_map"><span>現在地カードの背景に衛星写真を表示（通信量が増えます）</span></label>
   <label class="ck"><input type="checkbox" id="s_big"><span>大きい文字・大きいボタン</span></label>
   <div class="two"><div><label for="s_ww">風の警告（m/s以上）</label><input id="s_ww" type="number" inputmode="decimal" step="0.5"></div><div><label for="s_wv">波の警告（m以上）</label><input id="s_wv" type="number" inputmode="decimal" step="0.1"></div></div>
   <button id="s_ui" class="pri" style="width:100%;margin-top:10px">警告の基準を保存</button></div>
@@ -398,11 +405,18 @@ const setSt=m=>$('#st').textContent=m;
 
 /* ---------- 描画 ---------- */
 function tick(){const d=new Date();$('#clk').textContent=`${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;$('#dt').textContent=d.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'})}
+let lbKey='';
+function locBg(force){const box=$('#locbg');if(!box)return;
+ if(env.lat==null||cfg.map===false){box.innerHTML='';lbKey='';return}
+ const z=16,n=2**z,x=(env.lon+180)/360*n,r=env.lat*Math.PI/180,y=(1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*n,tx=Math.floor(x),ty=Math.floor(y),fx=Math.round((x-tx)*256),fy=Math.round((y-ty)*256),key=tx+','+ty+','+fx+','+fy;
+ if(!force&&key===lbKey)return;lbKey=key;let h='';
+ for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)h+=`<img alt="" loading="lazy" onerror="this.style.display='none'" src="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${ty+j}/${tx+i}" style="left:${(i+1)*256}px;top:${(j+1)*256}px">`;
+ box.innerHTML=`<div class="lbt" style="left:calc(50% - ${256+fx}px);top:calc(50% - ${256+fy}px)">${h}</div><span class="lbd"></span>`}
 function renderLoc(){
  if(env.lat==null){$('#loc').textContent='位置未取得';return}
  let near='',bi=0,bd=1e9;PORTS.forEach((p,k)=>{const d=dist(env.lat,env.lon,p[1],p[2]);if(d<bd){bd=d;bi=k}});
  env.portTxt=`${PORTS[bi][0]}（直線 ${bd<10?bd.toFixed(1):Math.round(bd)}km）`;
- $('#loc').textContent=env.place||'地名を取得中…';
+ $('#loc').textContent=env.place||'地名を取得中…';locBg();
  $('#loc2').innerHTML=`緯度 ${env.lat.toFixed(5)} ／ 経度 ${env.lon.toFixed(5)}<br>最寄りの港：<b>${e(env.portTxt)}</b>`;
  $('#jma').href=env.muni?`https://www.jma.go.jp/bosai/warning/#area_type=class20s&area_code=${env.muni}00&lang=ja`:'https://www.jma.go.jp/bosai/warning/';
 }
@@ -606,7 +620,7 @@ function askClear(){$('#mDone').classList.add('on')}
 window.addEventListener('afterprint',()=>{if(printing){printing=false;if($('#prt').classList.contains('on'))askClear()}});
 
 /* ---------- 設定 ---------- */
-function openSet(){$('#s_night').checked=!!cfg.night;$('#s_big').checked=!!cfg.big;$('#s_ww').value=cfg.ww??10;$('#s_wv').value=cfg.wv??2;$('#tkEd').innerHTML=TK.map(t=>`<label>${t[1]}</label><textarea id="te_${t[0]}" style="min-height:90px">${e(optsOf(t).join('\n'))}</textarea>`).join('');$('#s_exif').checked=cfg.exifTag!==false;$('#ic_name').value=icn.name||'釣果ノート';$('#ic_tx').value=ICON_SY.includes(icn.sym)?'':(icn.sym||'');const s=$('#s_port');s.innerHTML='<option value="auto">自動（最寄りの検潮所）</option>'+PORTS.map((p,i)=>`<option value="${i}">${e(p[0])}</option>`).join('');s.value=cfg.port;$('#s_off').value=cfg.off||0;
+function openSet(){$('#s_map').checked=cfg.map!==false;$('#s_night').checked=!!cfg.night;$('#s_big').checked=!!cfg.big;$('#s_ww').value=cfg.ww??10;$('#s_wv').value=cfg.wv??2;$('#tkEd').innerHTML=TK.map(t=>`<label>${t[1]}</label><textarea id="te_${t[0]}" style="min-height:90px">${e(optsOf(t).join('\n'))}</textarea>`).join('');$('#s_exif').checked=cfg.exifTag!==false;$('#ic_name').value=icn.name||'釣果ノート';$('#ic_tx').value=ICON_SY.includes(icn.sym)?'':(icn.sym||'');const s=$('#s_port');s.innerHTML='<option value="auto">自動（最寄りの検潮所）</option>'+PORTS.map((p,i)=>`<option value="${i}">${e(p[0])}</option>`).join('');s.value=cfg.port;$('#s_off').value=cfg.off||0;
  const nh=(env.om||[]).find(x=>x.type==='H'&&x.t>Date.now());
  if(nh){$('#s_hi').value=hm(nh.t);$('#s_hi_note').textContent='初期値：Open-Meteoの推定（'+hm(nh.t)+'）。上の気象庁の潮位表で確認できた場合は、その時刻に書き換えてください（そちらの方が正確です）。'}
  else{$('#s_hi').value='';$('#s_hi_note').textContent='Open-Meteoの推定時刻を取得できていません。気象庁の潮位表で次の満潮時刻を確認して入力してください。'}
@@ -617,6 +631,7 @@ $('#bRef').onclick=refresh;$('#bNew').onclick=()=>openForm();document.querySelec
 $('#bLater').onclick=quick;$('#bBk').onclick=exportJSON;
 $('#bNight').onclick=async()=>{cfg.night=!cfg.night;applyUI();await kvSet('cfg',cfg)};
 $('#s_night').onchange=async()=>{cfg.night=$('#s_night').checked;applyUI();await kvSet('cfg',cfg)};
+$('#s_map').onchange=async()=>{cfg.map=$('#s_map').checked;await kvSet('cfg',cfg);locBg(true)};
 $('#s_big').onchange=async()=>{cfg.big=$('#s_big').checked;applyUI();await kvSet('cfg',cfg)};
 $('#s_ui').onclick=async()=>{cfg.ww=parseFloat($('#s_ww').value)||10;cfg.wv=parseFloat($('#s_wv').value)||2;await kvSet('cfg',cfg);renderWarn();toast('警告の基準を保存しました')};
 $('#tkSave').onclick=async()=>{cfg.tkOpts={};TK.forEach(t=>cfg.tkOpts[t[0]]=$('#te_'+t[0]).value.split('\n').map(x=>x.trim()).filter(Boolean));await kvSet('cfg',cfg);buildTk();toast('選択肢を保存しました')};
@@ -662,7 +677,7 @@ $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$(
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-20e';
+const VER='2026-11-21a';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};

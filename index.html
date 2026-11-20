@@ -105,7 +105,7 @@ body[data-v=home] .tabs,body[data-v=rec] .tabs,body[data-v=stat] .tabs,body[data
 body[data-v=home] .fab,body[data-v=rec] .fab{display:flex}
 #toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;font-weight:700;z-index:30;display:none;max-width:90%;text-align:center}
 .warnbar{background:var(--red);color:#fff;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-weight:700;font-size:17px;border:3px solid #fff;box-shadow:0 0 0 3px var(--red)}
-.sumc{border:2px solid var(--sea)}#sum{font:700 17px/1.5 var(--serif)}
+.sumc{background:linear-gradient(135deg,#14293a,#1d6f78);color:#fff;border:0;padding:14px}.sml{font-size:11px;letter-spacing:.18em;color:var(--buoy);font-weight:700;margin-bottom:8px}.smg{display:grid;grid-template-columns:1fr 1fr;gap:8px}.smc{background:#ffffff1c;border-radius:12px;padding:8px 12px}.smc.w2{grid-column:span 2}.smc small{display:block;font-size:11px;color:#c9dde0;letter-spacing:.1em}.smc b{font:700 19px/1.35 var(--serif)}.fire{background:var(--buoy);color:#14293a;padding:2px 10px;border-radius:10px;letter-spacing:0;margin-left:6px;font-size:12px}.smc.hot{background:var(--buoy);color:#14293a}.smc.hot small{color:#14293a99}
 .item{align-items:stretch;border:3px double var(--ink);gap:12px}
 .item img,.item .ni{width:84px;height:112px;border-radius:4px}.item b{font-size:19px}
 .tg{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.tg i{font-style:normal;font-size:12px;background:var(--foam);padding:1px 8px;border-radius:10px}.tg i.pb{background:var(--buoy);font-weight:700;color:#14293a}.tg i.lt{background:var(--red);color:#fff}
@@ -119,6 +119,7 @@ body.night .pri{background:#7a2a20;border-color:#7a2a20;color:#ffd9d2}body.night
 body.night .tide{--tb:#2a1212!important}body.night .tide .big,body.night .tn,body.night .tide .hr,body.night .ref,body.night .tide .nx div{color:#ffb4a6}
 body.night .sub,body.night .hint{color:#c9857a}body.night .tile,body.night .hr,body.night .photo,body.night .chips button{background:#2b1616}body.night .tg i{background:#2b1616}
 }
+body.night .sumc{background:linear-gradient(135deg,#2a1212,#4a1c16);color:#ffb4a6}
 body.big{font-size:19px}body.big button,body.big .btn{min-height:60px;font-size:19px}body.big input,body.big select,body.big textarea{min-height:60px;font-size:19px}body.big .chips button{min-height:52px;font-size:17px}body.big .tabs button{min-height:64px}body.big .tabs button span{font-size:13px}body.big #clk{font-size:48px}body.big .tile b{font-size:22px}
 </style>
 </head>
@@ -130,7 +131,6 @@ body.big{font-size:19px}body.big button,body.big .btn{min-height:60px;font-size:
 <main>
  <div id="upd" class="card" hidden style="border-color:var(--buoy);border-width:3px"><b>新しいバージョン（<span id="updv"></span>）があります</b><button id="bUpd" class="pri" style="width:100%;margin-top:8px">今すぐ更新</button></div>
  <div id="warn" class="warnbar" hidden></div>
- <div id="bkn" class="card" hidden style="border-color:var(--buoy);border-width:3px"><b id="bknT"></b><button id="bBk" class="pri" style="width:100%;margin-top:8px">今すぐバックアップを書き出す</button></div>
  <div class="card sumc"><div id="sum">取得中…</div></div>
  <div class="card" id="tripc"></div>
  <div class="card">
@@ -139,9 +139,10 @@ body.big{font-size:19px}body.big button,body.big .btn{min-height:60px;font-size:
  </div>
  <div class="card"><h2>現在地</h2><div id="loc" class="big">—</div><div id="loc2" class="sub"></div>
   <div class="row" style="margin-top:10px"><a id="jma" class="btn warn" target="_blank" rel="noopener" href="https://www.jma.go.jp/bosai/warning/">⚠ 気象庁 注意報・警報を見る</a></div></div>
- <div class="card"><h2>日の出・日の入り・マヅメ</h2><div id="sun" class="sub">—</div></div>
  <div class="card"><h2>気象・海象</h2><div id="wx" class="sub">取得待ち…</div><div id="wxs" class="sub" style="color:var(--red);font-weight:700"></div><div id="hours" class="hours"></div></div>
- <div class="card tide"><h2>潮汐の推算値（気象庁の調和定数）</h2><div id="tn" class="tn"></div><div id="td" class="big">—</div><div id="td2" class="sub" style="color:#b9ccd6"></div><div class="nx" id="tdn"></div><div id="tdc"></div><div id="tw" class="hours"></div><small>棒の高さ＝その日の干満差の大きさ（高いほど潮が大きく動きます）／下の数字は月齢</small><small id="tdp"></small><div id="tdo" class="ref"></div><a id="tdl" class="btn ghost" target="_blank" rel="noopener" href="https://www.data.jma.go.jp/kaiyou/db/tide/suisan/" style="width:100%;margin-top:10px;color:#fff;border-color:#ffffff66">📖 気象庁の潮位表</a><button class="ghost" data-copy="#tdl" style="width:100%;margin-top:8px;min-height:44px;color:#fff;border-color:#ffffff66">🔗 リンクをコピー（好きなブラウザに貼り付け）</button></div>
+ <div class="card"><h2>日の出・日の入り・マヅメ</h2><div id="sun" class="sub">—</div></div>
+ <div class="card tide"><h2>潮汐の推算値（気象庁の調和定数）</h2><div id="tn" class="tn"></div><div id="td" class="big">—</div><div id="td2" class="sub" style="color:#b9ccd6"></div><div class="nx" id="tdn"></div><div id="tdc"></div><div id="tw" class="hours"></div><small>棒の高さ＝その日の干満差の大きさ（高いほど潮が大きく動きます）／下の数字は月齢／🔥＝上げ3分・下げ7分（釣れやすいと言われる潮）</small><small id="tdp"></small><div id="tdo" class="ref"></div><a id="tdl" class="btn ghost" target="_blank" rel="noopener" href="https://www.data.jma.go.jp/kaiyou/db/tide/suisan/" style="width:100%;margin-top:10px;color:#fff;border-color:#ffffff66">📖 気象庁の潮位表</a><button class="ghost" data-copy="#tdl" style="width:100%;margin-top:8px;min-height:44px;color:#fff;border-color:#ffffff66">🔗 リンクをコピー（好きなブラウザに貼り付け）</button></div>
+ <div id="bkn" class="card" hidden style="border-color:var(--buoy);border-width:3px"><b id="bknT"></b><button id="bBk" class="pri" style="width:100%;margin-top:8px">今すぐバックアップを書き出す</button></div>
  <p class="hint" id="ver2" style="text-align:center"></p>
 </main>
 </section>
@@ -162,13 +163,14 @@ body.big{font-size:19px}body.big button,body.big .btn{min-height:60px;font-size:
  <button id="bOrig" class="ghost" style="width:100%;margin-top:8px" hidden>📥 元の写真を「写真」アプリに保存</button>
  <label for="f_sp">魚種名</label>
  <input id="f_sp" list="spList" placeholder="例：ガーラ、ミーバイ" autocomplete="off"><datalist id="spList"></datalist>
- <div class="row" style="margin-top:8px"><a id="bLens" class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/imghp?hl=ja">🔍 Google画像検索で調べる</a></div>
+ <div class="row" style="margin-top:8px"><a id="bLens" class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/imghp?hl=ja">🔍 Google画像検索</a><a id="bWeb" class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/">🔎 ウェブ検索</a></div>
  <p class="hint">写真を長押しして「コピー」または保存し、開いたGoogleのカメラアイコンから貼り付けると魚種を調べられます。魚種名を入力済みなら、その名前でも検索できます。</p>
  <div class="two"><div><label for="f_size">サイズ（cm）</label><input id="f_size" inputmode="decimal" placeholder="任意"></div><div><label for="f_cnt">匹数</label><input id="f_cnt" inputmode="numeric" placeholder="任意"></div></div>
  <div class="card" style="margin-top:16px"><h2>タックル</h2><div id="tk"></div></div>
  <div class="card" style="margin-top:16px"><h2>環境データ（自動入力・修正可）</h2>
   <label for="f_ts">日時</label><input id="f_ts" type="datetime-local">
   <label for="f_place">場所</label><input id="f_place">
+  <a id="bMap" class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/maps" style="width:100%;margin-top:8px">📍 Googleマップで開く</a>
   <label for="f_port">最寄りの港</label><input id="f_port">
   <div class="two"><div><label for="f_wx">天気</label><input id="f_wx"></div><div><label for="f_temp">気温（℃）</label><input id="f_temp" inputmode="decimal"></div></div>
   <label for="f_wind">風</label><input id="f_wind">
@@ -418,11 +420,12 @@ function renderTide(){
  const prev=[...ex].reverse().find(x=>x.t<=now),nxt=ex.find(x=>x.t>now);
  if(!prev||!nxt){$('#td').textContent='計算不能';return}
  const el=now-prev.t,tot=nxt.t-prev.t,near=Math.min(el,nxt.t-now)<=30*6e4;
- let label;if(near){label=(el<=nxt.t-now?prev.type:nxt.type)==='H'?'満潮前後':'干潮前後'}else{label=(prev.type==='L'?'上げ':'下げ')+Math.max(1,Math.min(9,Math.round(el/tot*10)))+'分'}
+ const stg=Math.max(1,Math.min(9,Math.round(el/tot*10)));let label;if(near){label=(el<=nxt.t-now?prev.type:nxt.type)==='H'?'満潮前後':'干潮前後'}else{label=(prev.type==='L'?'上げ':'下げ')+stg+'分'}
+ const fire=!near&&((prev.type==='L'&&stg===3)||(prev.type==='H'&&stg===7));env.tideFire=fire;
  const mn=Math.round(el/6e4);
  const nh=ex.find(x=>x.t>now&&x.type==='H'),nl=ex.find(x=>x.t>now&&x.type==='L');
- env.tideShort=`${wk[0].n}・${label}`;env.tideTxt=`${wk[0].n}・${label}（次の${nxt.type==='H'?'満潮':'干潮'} ${hm(nxt.t)}）`;
- $('#td').textContent=label;
+ env.tideShort=`${wk[0].n}・${label}${fire?'🔥':''}`;env.tideTxt=`${wk[0].n}・${label}（次の${nxt.type==='H'?'満潮':'干潮'} ${hm(nxt.t)}）`;
+ $('#td').textContent=label+(fire?'🔥':'');
  $('#td2').textContent=`${prev.type==='L'?'干潮':'満潮'}から${Math.floor(mn/60)?Math.floor(mn/60)+'時間':''}${mn%60}分経過`;
  $('#tdn').innerHTML=`<div>次の満潮<b>${nh?hm(nh.t):'—'}</b></div><div>次の干潮<b>${nl?hm(nl.t):'—'}</b></div>`;
  // 曲線
@@ -518,7 +521,7 @@ function resizeImg(file){return new Promise((res,rej)=>{const u=URL.createObject
 function showPhoto(){$('#pv').innerHTML=photo?`<img src="${photo}" alt="釣果の写真">`:'写真なし'}
 
 /* ---------- フォーム ---------- */
-const CHIPS=['ジグ','ワーム','ミノー','エサ釣り','オキアミ','イソメ','サビキ','投げ釣り','ウキ釣り','潮目あり','ベイト多い','濁り','朝マヅメ','夕マヅメ','夜釣り','リリース','ハイブリットクロス','F1.5','F2.0','F3.0','ムキミ','セット仕掛け','自作仕掛け','胴突','3本針','2本針','伊勢尼','グレ針','チヌ針','1号','2号','3号','0.5号','0.1号'];
+const CHIPS=['ジグ','ワーム','ミノー','エサ釣り','オキアミ','イソメ','サビキ','投げ釣り','ウキ釣り','潮目あり','ベイト多い','濁り','朝マヅメ','夕マヅメ','夜釣り','リリース','ハイブリットクロス','F1.5','F2.0','F2.5','ムキミ','セット仕掛け','自作仕掛け','胴突','3本針','2本針','伊勢尼','グレ針','チヌ針','1号','2号','3号','0.5号','0.1号'];
 $('#chips').innerHTML=CHIPS.map(c=>`<button type="button" data-c="${e(c)}">${e(c)}</button>`).join('');
 const TK=[
 ['rod','ロッド',['エメラルダスＸ86ML','TsulinoCHILLAXカワハギ','ジギンガーＺ','テレショーティ改','鱒レンジャー月光夜刀'],'ジギンガーＺ'],
@@ -574,7 +577,7 @@ function buildPrint(){
  <div class="pb"><div class="pi">${r.photo?`<img src="${r.photo}" alt="">`:'<i>写真なし</i>'}</div><div class="pr"><dl>
  ${row('サイズ',r.size?r.size+' cm':'')}${row('匹数',r.count?r.count+' 匹':'')}${row('天気',r.wx)}${row('気温',r.temp?r.temp+' ℃':'')}${row('波高',r.wave?r.wave+' m':'')}${row('海水温',r.sst?r.sst+' ℃':'')}
  ${row('風',r.wind,2)}${row('潮汐',r.tide,4)}${row('場所',(r.place||'')+(r.lat!=null?'（'+r.lat.toFixed(4)+', '+r.lon.toFixed(4)+'）':''),6)}
- ${row('最寄りの港',r.port,3)}${row('ライン',[r.lt,r.lw?(isNaN(r.lw)?r.lw:r.lw+'号'):''].filter(Boolean).join(' '),3)}${row('ロッド',r.rod,3)}${row('リール',r.reel,3)}</dl><p class="pm"><b>メモ</b>${e(r.memo)||'—'}</p></div></div></article>`;
+ ${row('最寄りの港',r.port,3)}${row('エサ・ルアー',[r.bait,r.wt,r.col].filter(Boolean).join('／'),3)}${row('ロッド',r.rod,2)}${row('リール',r.reel,2)}${row('ライン',[r.lt,r.lw?(isNaN(r.lw)?r.lw:r.lw+'号'):''].filter(Boolean).join(' '),2)}</dl><p class="pm"><b>メモ</b>${e(r.memo)||'—'}</p></div></div></article>`;
  let h='';const pages=Math.ceil(list.length/n);
  for(let p=0;p<pages;p++)h+=`<div class="page" style="--n:${n};--pm:${{2:30,3:18,4:11}[n]}mm">${list.slice(p*n,p*n+n).map((r,i)=>card(r,p*n+i)).join('')}<div class="pf">釣果図鑑カード　${p+1} / ${pages}</div></div>`;
  $('#pa').innerHTML=h;
@@ -609,7 +612,9 @@ $('#bPhoto').onclick=()=>$('#f_photo').click();
 $('#f_photo').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{photo=await resizeImg(f);orig=f;origT=cfg.exifTag===false?f:await tagExif(f).catch(()=>f);$('#bOrig').hidden=false;showPhoto()}catch(x){alert(x.message)}ev.target.value=''};
 $('#bPhotoDel').onclick=()=>{photo=null;orig=origT=null;$('#bOrig').hidden=true;showPhoto()};
 $('#bOrig').onclick=async()=>{if(!origT)return;try{if(navigator.canShare&&navigator.canShare({files:[origT]}))await navigator.share({files:[origT]});else alert('この環境では共有メニューが使えません。標準のカメラで撮影してから、ライブラリで選んでください。')}catch(x){if(x.name!=='AbortError')alert('共有できませんでした：'+x.message)}};
-const lensUp=()=>{const q=$('#f_sp').value.trim();$('#bLens').href=q?`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q+' 魚')}`:'https://www.google.com/imghp?hl=ja'};$('#f_sp').addEventListener('input',lensUp);
+const lensUp=()=>{const q=$('#f_sp').value.trim();$('#bLens').href=q?`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q+' 魚')}`:'https://www.google.com/imghp?hl=ja';$('#bWeb').href=q?`https://www.google.com/search?q=${encodeURIComponent(q+' 魚')}`:'https://www.google.com/';
+ const la=cur?cur.lat:env.lat,lo=cur?cur.lon:env.lon,pl=$('#f_place').value.trim();$('#bMap').href=la!=null&&lo!=null?`https://www.google.com/maps?q=${la},${lo}`:pl?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pl)}`:'https://www.google.com/maps'};
+$('#f_sp').addEventListener('input',lensUp);$('#f_place').addEventListener('input',lensUp);
 $('#chips').onclick=ev=>{const c=ev.target.dataset.c;if(!c)return;const m=$('#f_memo');m.value+=(m.value&&!/\s$/.test(m.value)?' ':'')+c+' '};
 $('#bSave').onclick=save;
 $('#bDel').onclick=()=>$('#mDel').classList.add('on');
@@ -639,7 +644,7 @@ $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$(
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-19s';
+const VER='2026-11-20b';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};
@@ -681,7 +686,9 @@ function renderSun(){const P=curPort(),s=sunEq(env.lat??P.la,env.lon??P.lo,Date.
  const now=Date.now(),M=6e4,mw=[s.rise-30*M,s.rise+60*M],ew=[s.set-60*M,s.set+30*M];
  const st=now>=mw[0]&&now<=mw[1]?'🔥 朝マヅメ中':now>=ew[0]&&now<=ew[1]?'🔥 夕マヅメ中':now<s.rise?`日の出まで${hmm(s.rise-now)}`:now<s.set?`日没まで${hmm(s.set-now)}`:'日没後';
  box.innerHTML=`<div class="big" style="font-size:19px">${st}</div>🌅 日の出 <b>${hm(s.rise)}</b>　🌇 日没 <b>${hm(s.set)}</b><br>朝マヅメ <b>${hm(mw[0])}〜${hm(mw[1])}</b><br>夕マヅメ <b>${hm(ew[0])}〜${hm(ew[1])}</b><br><small>マヅメは日の出の30分前〜1時間後、日没の1時間前〜30分後の目安です。</small>`;env.sunTxt=st}
-function renderSum(){const p=[];if(env.tideShort)p.push(env.tideShort);if(env.w&&env.w.dir!=='—')p.push(`${env.w.dir}${env.w.spd}m/s`);if(env.w&&env.w.wave!=='—')p.push(`波${env.w.wave}m`);if(env.sunTxt)p.push(env.sunTxt);$('#sum').textContent=p.join('・')||'取得中…'}
+function renderSum(){const w=env.w,c=(l,v,x)=>`<div class="smc${x||''}"><small>${l}</small><b>${e(v)}</b></div>`,hot=/マヅメ中/.test(env.sunTxt||'');
+ const h=(env.tideShort?c('潮',env.tideShort,' w2'):'')+(w&&w.dir!=='—'?c('風',`${w.dir} ${w.spd}m/s`):'')+(w&&w.wave!=='—'?c('波',`${w.wave}m`):'')+(env.sunTxt?c('時間',env.sunTxt,' w2'+(hot?' hot':'')):'');
+ $('#sum').innerHTML='<div class="sml">NOW ・ いまの釣況'+(hot?' <span class="fire">🔥 マヅメ中</span>':'')+'</div><div class="smg">'+(h||'<div class="smc w2"><b>取得中…</b></div>')+'</div>'}
 function renderWarn(){const w=env.w,b=$('#warn');if(!w){b.hidden=true;return}const ww=cfg.ww??10,wv=cfg.wv??2,m=[];
  if(parseFloat(w.spd)>=ww)m.push(`風 ${w.spd}m/s（基準 ${ww}）`);if(parseFloat(w.wave)>=wv)m.push(`波高 ${w.wave}m（基準 ${wv}）`);
  b.hidden=!m.length;b.innerHTML='⚠ 荒れ注意：'+m.join('／')+'<br><small>無理をせず、安全を最優先にしてください。</small>'}

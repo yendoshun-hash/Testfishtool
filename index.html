@@ -63,7 +63,7 @@ textarea{min-height:110px}
 .photo img{width:100%;height:100%;object-fit:cover}
 .hint{font-size:13px;color:#4b6270;margin:6px 0}
 .mask{position:fixed;inset:0;background:#14293acc;display:none;align-items:center;justify-content:center;z-index:20;padding:20px}.mask.on{display:flex}
-.modal{background:#fff;border-radius:16px;padding:20px;max-width:420px;width:100%}.modal h3{margin:0 0 8px;font:700 19px var(--serif)}.modal .btn,.modal button{width:100%;margin-top:8px}
+.modal{max-height:92vh;overflow:auto;background:#fff;border-radius:16px;padding:20px;max-width:420px;width:100%}.modal h3{margin:0 0 8px;font:700 19px var(--serif)}.modal .btn,.modal button{width:100%;margin-top:8px}
 ol.steps{padding-left:0;list-style:none;counter-reset:s;margin:8px 0}ol.steps li{counter-increment:s;position:relative;padding:6px 0 6px 38px}
 ol.steps li:before{content:counter(s);position:absolute;left:0;top:6px;width:28px;height:28px;border-radius:50%;background:var(--sea);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px}
 details{border-top:1px solid var(--line);padding:8px 0}summary{font-weight:700;min-height:44px;display:flex;align-items:center;cursor:pointer}
@@ -155,11 +155,14 @@ body.night #locbg::after{background:linear-gradient(180deg,rgba(30,16,16,.74),rg
 </main>
 </section>
 <section id="rec" class="view"><header class="top"><h1>記録一覧</h1><button id="bPrint" aria-label="PDF出力">🖨 PDF</button></header><main>
+ <div class="two" style="margin-bottom:10px"><button id="vRec" class="pri">📖 釣果</button><button id="vTrip" class="ghost">🎣 釣行</button></div>
+ <div id="recB">
  <div class="card" id="flt"><input id="q" type="search" placeholder="🔍 魚種・場所・メモ・タックルで検索" autocomplete="off">
   <div class="two" style="margin-top:8px"><select id="fq_sp"><option value="">魚種：すべて</option></select><select id="fq_tn"><option value="">潮名：すべて</option><option>大潮</option><option>中潮</option><option>小潮</option><option>長潮</option><option>若潮</option></select></div>
   <div class="two" style="margin-top:8px"><select id="fq_pr"><option value="">期間：すべて</option><option value="30">直近30日</option><option value="90">直近90日</option><option value="365">直近1年</option></select><select id="fq_st"><option value="">状態：すべて</option><option value="later">追記待ちのみ</option><option value="pb">自己ベストのみ</option></select></div>
   <div id="fq_n" class="sub" style="margin-top:6px"></div></div>
- <div id="list"></div></main></section>
+ <div id="list"></div></div>
+ <div id="tripB" hidden></div></main></section>
 <section id="stat" class="view"><header class="top"><h1>統計</h1></header><main><div id="statB"></div></main></section>
 <div class="fab"><button id="bLater" class="warn" style="flex:0 0 36%">⚡ あとで記録</button><button id="bNew" class="pri">＋ 釣果を記録</button></div>
 <nav class="tabs"><button data-t="home">🏠<span>ホーム</span></button><button data-t="rec">📖<span>記録</span></button><button data-t="stat">📊<span>統計</span></button><button data-t="set">⚙<span>設定</span></button></nav>
@@ -277,6 +280,11 @@ body.night #locbg::after{background:linear-gradient(180deg,rgba(30,16,16,.74),rg
 
 <div class="mask" id="mDone"><div class="modal"><h3>出力が完了しました</h3><p>蓄積された釣果記録をクリアしますか？</p><p class="hint">クリアすると、出力した記録がこの端末から削除されます。心配な場合は先にバックアップを。</p><button id="mBk">先にバックアップを書き出す</button><button id="mClr" class="warn">クリアする（削除）</button><button id="mKeep" class="pri">残す（保持）</button></div></div>
 <div class="mask" id="mAll"><div class="modal"><h3>全記録を削除しますか？</h3><p id="mAllT"></p><p class="hint">削除すると元に戻せません。必要なら先にバックアップを書き出してください。</p><button id="mAllBk">先にバックアップを書き出す</button><button id="mAllY" class="warn">すべて削除する</button><button id="mAllN" class="pri">やめる</button></div></div>
+<div class="mask" id="mTrip"><div class="modal"><h3>釣行を編集</h3>
+ <label for="tr_s">開始</label><input id="tr_s" type="datetime-local">
+ <label for="tr_e">終了（空欄にすると「釣行中」に戻ります）</label><input id="tr_e" type="datetime-local">
+ <label for="tr_p">場所</label><input id="tr_p">
+ <button id="tr_save" class="pri">保存</button><button id="tr_del" class="warn">この釣行を削除</button><button id="tr_cancel">閉じる</button></div></div>
 <div class="mask" id="mDel"><div class="modal"><h3>この記録を削除しますか？</h3><button id="mDelY" class="warn">削除する</button><button id="mDelN">やめる</button></div></div>
 
 <script>
@@ -636,7 +644,8 @@ $('#s_big').onchange=async()=>{cfg.big=$('#s_big').checked;applyUI();await kvSet
 $('#s_ui').onclick=async()=>{cfg.ww=parseFloat($('#s_ww').value)||10;cfg.wv=parseFloat($('#s_wv').value)||2;await kvSet('cfg',cfg);renderWarn();toast('警告の基準を保存しました')};
 $('#tkSave').onclick=async()=>{cfg.tkOpts={};TK.forEach(t=>cfg.tkOpts[t[0]]=$('#te_'+t[0]).value.split('\n').map(x=>x.trim()).filter(Boolean));await kvSet('cfg',cfg);buildTk();toast('選択肢を保存しました')};
 $('#tkRst').onclick=async()=>{delete cfg.tkOpts;await kvSet('cfg',cfg);buildTk();openSet();toast('初期の選択肢に戻しました')};
-$('#tripc').onclick=async ev=>{if(!ev.target.closest('#bTrip'))return;const t=curTrip();
+$('#tripc').onclick=async ev=>{if(ev.target.closest('#bTripX')){const t0=curTrip();if(t0&&confirm('この釣行の開始を取り消します（釣行を削除します）。よろしいですか？')){await delTrip(t0.id);toast('釣行を取り消しました')}return}
+ if(!ev.target.closest('#bTrip'))return;const t=curTrip();
  if(!t){trips.push({id:Date.now(),start:Date.now(),place:env.place||'',port:env.portTxt||'',tn:(env.tideShort||'').split('・')[0],tide:env.tideTxt||'',wx:env.wx||'',temp:env.temp||'',wind:env.windTxt||'',wave:env.wave||'',sst:env.sst||'',lat:env.lat,lon:env.lon});await saveTrips();renderTrip();toast('🎣 釣行を開始しました')}
  else{t.end=Date.now();await saveTrips();const n=records.filter(r=>r.tripId===t.id).length;renderTrip();toast(n?`釣行を終了（釣果 ${n}件）`:'釣行を終了（ボウズ）')}};
 $('#fBack').onclick=()=>show('home');$('#sBack').onclick=()=>show('home');$('#pBack').onclick=()=>show('home');
@@ -677,7 +686,7 @@ $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$(
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-21a';
+const VER='2026-11-21b';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};
@@ -702,7 +711,24 @@ async function checkUpdate(manual){try{const r=await fetch(location.pathname+'?c
 async function doUpdate(){try{await fetch(location.pathname,{cache:'reload'})}catch(x){}location.reload()}
 $('#bUpd').onclick=doUpdate;$('#bChk').onclick=()=>checkUpdate(true);
 /* ---------- 新機能 ---------- */
-let tmr,trips=[];
+let tmr,trips=[],trEd=null;
+async function delTrip(id){trips=trips.filter(t=>t.id!==id);for(const r of records.filter(r=>r.tripId===id)){delete r.tripId;await put(r)}await saveTrips();await renderList();drawTrips();renderTrip()}
+function drawTrips(){const T=[...trips].sort((a,b)=>b.start-a.start);
+ $('#tripB').innerHTML=T.length?T.map(t=>{const rs=records.filter(r=>r.tripId===t.id),n=rs.reduce((a,r)=>a+fishN(r),0);
+  return `<button class="item" data-tid="${t.id}" style="min-height:0"><div style="flex:1"><b>${fmt(t.start).slice(0,10)}　${hm(t.start)}〜${t.end?hm(t.end):'釣行中'}</b><span>${e(t.place||'場所不明')}</span><div class="tg">${t.tn?`<i>${e(t.tn)}</i>`:''}${t.end?(rs.length?`<i class="pb">釣果 ${rs.length}件・${n}匹</i>`:'<i class="lt">ボウズ</i>'):'<i>進行中</i>'}</div></div><span style="flex:none;font-size:20px;align-self:center">✎</span></button>`}).join('')+'<div class="hint" style="margin-top:8px">タップすると、時刻・場所の修正や削除ができます。</div>':'<div class="empty">釣行の記録はまだありません。</div>'}
+function recView(v){const t=v==='trip';$('#recB').hidden=t;$('#tripB').hidden=!t;$('#vRec').className=t?'ghost':'pri';$('#vTrip').className=t?'pri':'ghost';$('#bPrint').style.display=t?'none':'';if(t)drawTrips()}
+$('#vRec').onclick=()=>recView('rec');$('#vTrip').onclick=()=>recView('trip');
+$('#tripB').onclick=ev=>{const b=ev.target.closest('[data-tid]');if(!b)return;trEd=trips.find(t=>t.id===+b.dataset.tid);if(!trEd)return;
+ $('#tr_s').value=toLocalIn(trEd.start);$('#tr_e').value=trEd.end?toLocalIn(trEd.end):'';$('#tr_p').value=trEd.place||'';$('#mTrip').classList.add('on')};
+$('#tr_cancel').onclick=()=>$('#mTrip').classList.remove('on');
+$('#tr_save').onclick=async()=>{if(!trEd)return;const st=new Date($('#tr_s').value).getTime(),en=$('#tr_e').value?new Date($('#tr_e').value).getTime():null;
+ if(!st){alert('開始の日時を入力してください。');return}
+ if(en&&en<st){alert('終了は開始より後の日時にしてください。');return}
+ if(!en&&trips.some(t=>!t.end&&t.id!==trEd.id)){alert('すでに釣行中の釣行があります。先に終了してください。');return}
+ trEd.start=st;if(en)trEd.end=en;else delete trEd.end;trEd.place=$('#tr_p').value.trim();
+ await saveTrips();$('#mTrip').classList.remove('on');drawTrips();renderTrip();toast('釣行を保存しました')};
+$('#tr_del').onclick=async()=>{if(!trEd)return;if(!confirm('この釣行を削除します。この釣行に紐づく釣果の記録は残ります。よろしいですか？'))return;
+ const id=trEd.id;trEd=null;$('#mTrip').classList.remove('on');await delTrip(id);toast('釣行を削除しました')};
 const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(tmr);tmr=setTimeout(()=>t.style.display='none',3000)};
 const hmm=ms=>{const m=Math.max(0,Math.round(ms/6e4));return(m>=60?Math.floor(m/60)+'時間':'')+(m%60)+'分'};
 function applyUI(){document.body.classList.toggle('night',!!cfg.night);document.body.classList.toggle('big',!!cfg.big);document.querySelector('meta[name=theme-color]').content=cfg.night?'#2a1212':'#14293a'}
@@ -729,7 +755,7 @@ function renderBk(){const d=cfg.lastBk?(Date.now()-cfg.lastBk)/864e5:999,b=$('#b
 const saveEnv=()=>kvSet('envc',{t:Date.now(),lat:env.lat,lon:env.lon,place:env.place,muni:env.muni,w:env.w,hours:env.hours,wx:env.wx,temp:env.temp,windTxt:env.windTxt,wave:env.wave,sst:env.sst,om:env.om}).catch(()=>{});
 const loadTrips=async()=>{trips=(await kvGet('trips'))||[]},saveTrips=()=>kvSet('trips',trips),curTrip=()=>trips.find(t=>!t.end);
 function renderTrip(){const t=curTrip(),c=$('#tripc');
- c.innerHTML=t?`<h2>釣行中</h2><div class="big" style="font-size:19px">${hm(t.start)}〜（${hmm(Date.now()-t.start)}経過）</div><div class="sub">${e(t.place||'')}　釣果 ${records.filter(r=>r.tripId===t.id).length}件</div><button id="bTrip" class="warn" style="width:100%;margin-top:8px">釣行を終了</button>`
+ c.innerHTML=t?`<h2>釣行中</h2><div class="big" style="font-size:19px">${hm(t.start)}〜（${hmm(Date.now()-t.start)}経過）</div><div class="sub">${e(t.place||'')}　釣果 ${records.filter(r=>r.tripId===t.id).length}件</div><button id="bTrip" class="warn" style="width:100%;margin-top:8px">釣行を終了</button><button id="bTripX" class="ghost" style="width:100%;margin-top:8px">開始を取り消す（削除）</button>`
  :'<h2>釣行</h2><div class="sub">「釣行を開始」で条件を保存します。釣れなかった日（ボウズ）も統計に入ります。</div><button id="bTrip" class="pri" style="width:100%;margin-top:8px">🎣 釣行を開始</button>'}
 async function quick(){const r={ts:Date.now(),species:'',size:'',count:'',place:env.place||'',port:env.portTxt||'',wx:env.wx||'',temp:env.temp??'',wind:env.windTxt||'',wave:env.wave??'',sst:env.sst??'',tide:env.tideTxt||'',memo:'',lat:env.lat,lon:env.lon,later:true};
  TK.forEach(t=>r[t[0]]=t[3]);const t=curTrip();if(t)r.tripId=t.id;await put(r);await renderList();toast('⚡ 記録しました（写真・魚種はあとで追記）')}

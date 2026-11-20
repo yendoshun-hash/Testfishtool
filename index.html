@@ -421,7 +421,7 @@ function renderTide(){
  if(!prev||!nxt){$('#td').textContent='計算不能';return}
  const el=now-prev.t,tot=nxt.t-prev.t,near=Math.min(el,nxt.t-now)<=30*6e4;
  const stg=Math.max(1,Math.min(9,Math.round(el/tot*10)));let label;if(near){label=(el<=nxt.t-now?prev.type:nxt.type)==='H'?'満潮前後':'干潮前後'}else{label=(prev.type==='L'?'上げ':'下げ')+stg+'分'}
- const fire=!near&&((prev.type==='L'&&stg===3)||(prev.type==='H'&&stg===7));env.tideFire=fire;
+ const fire=!near&&((prev.type==='L'&&stg===3)||(prev.type==='H'&&stg===7));env.tideFire=fire;env.tideLabel=label;
  const mn=Math.round(el/6e4);
  const nh=ex.find(x=>x.t>now&&x.type==='H'),nl=ex.find(x=>x.t>now&&x.type==='L');
  env.tideShort=`${wk[0].n}・${label}${fire?'🔥':''}`;env.tideTxt=`${wk[0].n}・${label}（次の${nxt.type==='H'?'満潮':'干潮'} ${hm(nxt.t)}）`;
@@ -575,9 +575,9 @@ function buildPrint(){
  const n=+$('#pN').value,list=[...records].sort((a,b)=>a.ts-b.ts);printed=list.map(r=>r.id);
  const card=(r,i)=>`<article class="pc"><div class="ph"><span class="no">No.${i+1}</span><h3>${e(r.species||'魚種未記入')}</h3><span class="dt">${fmt(r.ts)}</span></div>
  <div class="pb"><div class="pi">${r.photo?`<img src="${r.photo}" alt="">`:'<i>写真なし</i>'}</div><div class="pr"><dl>
- ${row('サイズ',r.size?r.size+' cm':'')}${row('匹数',r.count?r.count+' 匹':'')}${row('天気',r.wx)}${row('気温',r.temp?r.temp+' ℃':'')}${row('波高',r.wave?r.wave+' m':'')}${row('海水温',r.sst?r.sst+' ℃':'')}
+ ${row('サイズ',r.size?r.size+' cm':'')}${row('天気',r.wx)}${row('気温',r.temp?r.temp+' ℃':'')}${row('波高',r.wave?r.wave+' m':'',3)}${row('海水温',r.sst?r.sst+' ℃':'',3)}
  ${row('風',r.wind,2)}${row('潮汐',r.tide,4)}${row('場所',(r.place||'')+(r.lat!=null?'（'+r.lat.toFixed(4)+', '+r.lon.toFixed(4)+'）':''),6)}
- ${row('最寄りの港',r.port,3)}${row('エサ・ルアー',[r.bait,r.wt,r.col].filter(Boolean).join('／'),3)}${row('ロッド',r.rod,2)}${row('リール',r.reel,2)}${row('ライン',[r.lt,r.lw?(isNaN(r.lw)?r.lw:r.lw+'号'):''].filter(Boolean).join(' '),2)}</dl><p class="pm"><b>メモ</b>${e(r.memo)||'—'}</p></div></div></article>`;
+ ${row('ロッド',r.rod,2)}${row('リール',r.reel,2)}${row('ライン',[r.lt,r.lw?(isNaN(r.lw)?r.lw:r.lw+'号'):''].filter(Boolean).join(' '),2)}${row('エサ・ルアー',[r.bait,r.wt,r.col].filter(Boolean).join('／'),6)}</dl><p class="pm"><b>メモ</b>${e(r.memo)||'—'}</p></div></div></article>`;
  let h='';const pages=Math.ceil(list.length/n);
  for(let p=0;p<pages;p++)h+=`<div class="page" style="--n:${n};--pm:${{2:30,3:18,4:11}[n]}mm">${list.slice(p*n,p*n+n).map((r,i)=>card(r,p*n+i)).join('')}<div class="pf">釣果図鑑カード　${p+1} / ${pages}</div></div>`;
  $('#pa').innerHTML=h;
@@ -644,7 +644,7 @@ $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$(
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-20b';
+const VER='2026-11-20c';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};
@@ -678,7 +678,7 @@ function buildTk(){const keep={};TK.forEach(t=>keep[t[0]]=getTk(t[0]));
  $('#tk').innerHTML=TK.map(t=>`<label for="t_${t[0]}">${t[1]}</label><select id="t_${t[0]}"><option value="">（未選択）</option>${optsOf(t).map(o=>`<option value="${e(o)}">${e(o)}</option>`).join('')}<option value="__o">その他（自由入力）</option></select><input id="t_${t[0]}_o" placeholder="自由に入力" style="margin-top:6px" hidden>`).join('');
  TK.forEach(t=>{$('#t_'+t[0]).addEventListener('change',()=>{const o=$('#t_'+t[0]+'_o'),x=$('#t_'+t[0]).value==='__o';o.hidden=!x;if(x)o.focus()});setTk(t[0],keep[t[0]])})}
 /* 日の出・日の入り（NOAA簡易式） */
-function sunEq(lat,lon,t){const R=Math.PI/180,n=Math.ceil(Math.floor((t+9*36e5)/864e5)+2440588-2451545+0.0008),Js=n-lon/360,M=(357.5291+0.98560028*Js)%360,
+function sunEq(lat,lon,t){const R=Math.PI/180,n=Math.floor((t+9*36e5)/864e5)+2440588-2451545,Js=n-lon/360,M=(357.5291+0.98560028*Js)%360,
  C=1.9148*Math.sin(M*R)+0.02*Math.sin(2*M*R)+0.0003*Math.sin(3*M*R),L=(M+C+180+102.9372)%360,Jt=2451545+Js+0.0053*Math.sin(M*R)-0.0069*Math.sin(2*L*R),
  sd=Math.sin(L*R)*Math.sin(23.4397*R),w=(Math.sin(-0.833*R)-Math.sin(lat*R)*sd)/(Math.cos(lat*R)*Math.cos(Math.asin(sd)));if(Math.abs(w)>1)return null;
  const w0=Math.acos(w)/R,ms=J=>(J-2440587.5)*864e5;return{rise:ms(Jt-w0/360),set:ms(Jt+w0/360)}}
@@ -688,7 +688,7 @@ function renderSun(){const P=curPort(),s=sunEq(env.lat??P.la,env.lon??P.lo,Date.
  box.innerHTML=`<div class="big" style="font-size:19px">${st}</div>🌅 日の出 <b>${hm(s.rise)}</b>　🌇 日没 <b>${hm(s.set)}</b><br>朝マヅメ <b>${hm(mw[0])}〜${hm(mw[1])}</b><br>夕マヅメ <b>${hm(ew[0])}〜${hm(ew[1])}</b><br><small>マヅメは日の出の30分前〜1時間後、日没の1時間前〜30分後の目安です。</small>`;env.sunTxt=st}
 function renderSum(){const w=env.w,c=(l,v,x)=>`<div class="smc${x||''}"><small>${l}</small><b>${e(v)}</b></div>`,hot=/マヅメ中/.test(env.sunTxt||'');
  const h=(env.tideShort?c('潮',env.tideShort,' w2'):'')+(w&&w.dir!=='—'?c('風',`${w.dir} ${w.spd}m/s`):'')+(w&&w.wave!=='—'?c('波',`${w.wave}m`):'')+(env.sunTxt?c('時間',env.sunTxt,' w2'+(hot?' hot':'')):'');
- $('#sum').innerHTML='<div class="sml">NOW ・ いまの釣況'+(hot?' <span class="fire">🔥 マヅメ中</span>':'')+'</div><div class="smg">'+(h||'<div class="smc w2"><b>取得中…</b></div>')+'</div>'}
+ $('#sum').innerHTML='<div class="sml">NOW ・ いまの釣況'+(hot?' <span class="fire">🔥 マヅメ中</span>':'')+(env.tideFire?' <span class="fire">🔥 '+e(env.tideLabel)+'</span>':'')+'</div><div class="smg">'+(h||'<div class="smc w2"><b>取得中…</b></div>')+'</div>'}
 function renderWarn(){const w=env.w,b=$('#warn');if(!w){b.hidden=true;return}const ww=cfg.ww??10,wv=cfg.wv??2,m=[];
  if(parseFloat(w.spd)>=ww)m.push(`風 ${w.spd}m/s（基準 ${ww}）`);if(parseFloat(w.wave)>=wv)m.push(`波高 ${w.wave}m（基準 ${wv}）`);
  b.hidden=!m.length;b.innerHTML='⚠ 荒れ注意：'+m.join('／')+'<br><small>無理をせず、安全を最優先にしてください。</small>'}

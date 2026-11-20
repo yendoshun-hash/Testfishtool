@@ -196,12 +196,6 @@ body.night .hl small{color:#c9857a}
 <section id="set" class="view">
 <header class="top"><button id="sBack">‹ 戻る</button><h1>設定・ヘルプ</h1></header>
 <main>
- <div class="card"><h2>表示・安全</h2>
-  <label class="ck"><input type="checkbox" id="s_night"><span>ナイトモード（暗め・赤系）</span></label>
-  <label class="ck"><input type="checkbox" id="s_big"><span>大きい文字・大きいボタン</span></label>
-  <div class="two"><div><label for="s_ww">風の警告（m/s以上）</label><input id="s_ww" type="number" inputmode="decimal" step="0.5"></div><div><label for="s_wv">波の警告（m以上）</label><input id="s_wv" type="number" inputmode="decimal" step="0.1"></div></div>
-  <button id="s_ui" class="pri" style="width:100%;margin-top:10px">警告の基準を保存</button></div>
- <div class="card"><h2>タックルの選択肢</h2><p class="hint">1行に1つ入力します。保存すると、記録フォームのプルダウンに反映されます。</p><div id="tkEd"></div><button id="tkSave" class="pri" style="width:100%;margin-top:10px">選択肢を保存</button><button id="tkRst" class="ghost" style="width:100%;margin-top:8px">初期の選択肢に戻す</button></div>
  <div class="card"><h2>潮汐の設定</h2>
   <label for="s_port">基準の検潮所</label><select id="s_port"></select>
   <label for="s_off">時刻補正（分・遅らせる＋／早める－）</label><input id="s_off" type="number" inputmode="numeric" step="1" value="0">
@@ -209,6 +203,13 @@ body.night .hl small{color:#c9857a}
   <label for="s_hi">次の満潮時刻</label><input id="s_hi" type="time"><p class="hint" id="s_hi_note"></p><button id="s_cal" style="width:100%;margin-top:4px">この満潮時刻に合わせる</button><button id="s_rst" class="ghost" style="width:100%;margin-top:8px">補正をリセット（0分に戻す）</button>
   <p class="hint">気象庁が公表する調和定数（主要4分潮）で推算しています。実際の潮位表とは数十分ずれることがあります（那覇の公表値との比較では平均15分前後）。上のリンクで満潮時刻を確認し、ずれていれば満潮時刻で合わせてください。</p>
   <button id="s_save" class="pri" style="width:100%">設定を保存</button></div>
+ <div class="card"><h2>表示・安全</h2>
+  <label class="ck"><input type="checkbox" id="s_night"><span>ナイトモード（暗め・赤系）</span></label>
+  <label class="ck"><input type="checkbox" id="s_big"><span>大きい文字・大きいボタン</span></label>
+  <div class="two"><div><label for="s_ww">風の警告（m/s以上）</label><input id="s_ww" type="number" inputmode="decimal" step="0.5"></div><div><label for="s_wv">波の警告（m以上）</label><input id="s_wv" type="number" inputmode="decimal" step="0.1"></div></div>
+  <button id="s_ui" class="pri" style="width:100%;margin-top:10px">警告の基準を保存</button></div>
+ <div class="card"><h2>タックルの選択肢</h2><p class="hint">1行に1つ入力します。保存すると、記録フォームのプルダウンに反映されます。</p><div id="tkEd"></div><button id="tkSave" class="pri" style="width:100%;margin-top:10px">選択肢を保存</button><button id="tkRst" class="ghost" style="width:100%;margin-top:8px">初期の選択肢に戻す</button></div>
+ 
  <div class="card"><h2>元の写真の保存</h2>
   <label style="display:flex;gap:12px;align-items:center;margin:0"><input type="checkbox" id="s_exif" style="width:26px;min-height:26px;flex:none"><span>保存する元の写真のEXIFに「釣果ノート」を書き込む</span></label>
   <p class="hint">「元の写真を『写真』アプリに保存」を使うとき、写真のカメラ名の末尾（例：iPhone 15 Pro 釣果ノート）とソフトウェア名に「釣果ノート」を入れます。撮影日時や位置などの他の情報は変えません。JPEG形式の写真のみ対象で、書き込みはフォームで写真を選んだ時点で行われます。</p></div>
@@ -661,7 +662,7 @@ $('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$(
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-20d';
+const VER='2026-11-20e';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};

@@ -565,8 +565,8 @@ function showPhoto(){$('#pv').innerHTML=photo?`<img src="${photo}" alt="釣果�
 const CHIPS=['ジグ','ワーム','ミノー','エサ釣り','オキアミ','イソメ','サビキ','投げ釣り','ウキ釣り','潮目あり','ベイト多い','濁り','朝マヅメ','夕マヅメ','夜釣り','リリース','ハイブリットクロス','F1.5','F2.0','F2.5','ムキミ','セット仕掛け','自作仕掛け','胴突','3本針','2本針','伊勢尼','グレ針','チヌ針','1号','2号','3号','0.5号','0.1号'];
 $('#chips').innerHTML=CHIPS.map(c=>`<button type="button" data-c="${e(c)}">${e(c)}</button>`).join('');
 const TK=[
-['rod','ロッド',['エメラルダスＸ86ML','TsulinoCHILLAXカワハギ','ジギンガーＺ','テレショーティ改','鱒レンジャー月光夜刀'],'ジギンガーＺ'],
-['reel','リール',['エメラルダスＸ 2500','レガリス23 2500','カーディナルⅢSX 2500','カーディナルⅢSTX 3000'],'レガリス23 2500'],
+['rod','ロッド',['エメラルダスＸ86ML','TsulinoCHILLAXカワハギ','ジギンガーＺ','テレショーティ改','鱒レンジャー月光夜刀','カッコロッド','ダイソーレンジャー','ダイソーパックロッド'],'ジギンガーＺ'],
+['reel','リール',['エメラルダスＸ 2500','レガリス23 2500','カーディナルⅢSX 2500','カーディナルⅢSTX 3000','カッコリール','ダイソーリール'],'レガリス23 2500'],
 ['lt','ラインの種類',['PE','ナイロン','エステル'],'PE'],
 ['lw','ラインの太さ（号）',['0.6','0.8','1.0','2.0','3.0','4.0'],'0.8'],
 ['bait','エサ・ルアー',['オキアミ','アオイソメ','サビキ','ジグ','ワーム','ミノー'],''],
@@ -687,7 +687,7 @@ $('#pN').onchange=buildPrint;$('#pM').onchange=async()=>{cfg.pm4=$('#pM').value;
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-21f';
+const VER='2026-11-21g';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};
@@ -713,6 +713,8 @@ async function doUpdate(){try{await fetch(location.pathname,{cache:'reload'})}ca
 $('#bUpd').onclick=doUpdate;$('#bChk').onclick=()=>checkUpdate(true);
 /* ---------- 新機能 ---------- */
 let tmr,trips=[],trEd=null,kindSel=null;
+async function migTk(){if(cfg.mig2)return;const add={rod:['カッコロッド','ダイソーレンジャー','ダイソーパックロッド'],reel:['カッコリール','ダイソーリール']};
+ if(cfg.tkOpts)for(const k in add)if(cfg.tkOpts[k])add[k].forEach(x=>{if(!cfg.tkOpts[k].includes(x))cfg.tkOpts[k].push(x)});cfg.mig2=1;await kvSet('cfg',cfg)}
 async function migWho(){if(cfg.mig1)return;for(const r of await getAll())if(r.who==='自分'){r.who='とーやん';await put(r)}
  if(cfg.tkOpts&&cfg.tkOpts.who)cfg.tkOpts.who=cfg.tkOpts.who.map(x=>x==='自分'?'とーやん':x);cfg.mig1=1;await kvSet('cfg',cfg)}
 const kindOf=r=>{const t=trips.find(t=>t.id===r.tripId);return t&&t.kind||''};
@@ -809,7 +811,7 @@ function renderStats(){const R=records,B=$('#statB'),fish=fishN;
 /* ---------- 起動 ---------- */
 (async()=>{
  tick();setInterval(tick,1000);document.body.dataset.v='home';document.querySelector('.tabs button').classList.add('on');$('#ver').textContent=$('#ver2').textContent='アプリのバージョン：'+VER;
- try{await openDB();cfg=Object.assign(cfg,(await kvGet('cfg'))||{});if(cfg.v!==2){cfg.port='auto';cfg.off=0;cfg.v=2;await kvSet('cfg',cfg)}applyUI();await loadTrips();await migWho();buildTk();await renderList()}
+ try{await openDB();cfg=Object.assign(cfg,(await kvGet('cfg'))||{});if(cfg.v!==2){cfg.port='auto';cfg.off=0;cfg.v=2;await kvSet('cfg',cfg)}applyUI();await loadTrips();await migWho();await migTk();buildTk();await renderList()}
  catch(x){$('#list').innerHTML='<div class="empty">この環境ではIndexedDBが使えません。プライベートブラウズを解除してください。</div>'}
  try{Object.assign(icn,(await kvGet('icon'))||{})}catch(x){}
  applyIcon();

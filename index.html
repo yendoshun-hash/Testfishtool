@@ -98,7 +98,7 @@ body{padding:0}
 }
 .ck{display:flex;gap:12px;align-items:center;margin:8px 0;font-weight:400}.ck input{width:26px;min-height:26px;flex:none}
 .tabs{display:none;position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--ink);padding:4px 6px calc(4px + env(safe-area-inset-bottom));gap:4px}
-body[data-v=home] .tabs,body[data-v=rec] .tabs,body[data-v=stat] .tabs,body[data-v=set] .tabs{display:flex}
+body[data-v=home] .tabs,body[data-v=rec] .tabs,body[data-v=stat] .tabs,body[data-v=set] .tabs,body[data-v=ppl] .tabs{display:flex}
 .tabs button{flex:1;flex-direction:column;gap:0;min-height:52px;border:0;background:transparent;color:#ffffffb0;font-size:20px;line-height:1.2;border-radius:10px;padding:0}
 .tabs button span{font-size:11px}.tabs button.on{background:#ffffff26;color:#fff}
 .fab{display:none;bottom:calc(58px + env(safe-area-inset-bottom));padding:8px 12px;gap:8px}
@@ -165,8 +165,14 @@ body.night #locbg::after{background:linear-gradient(180deg,rgba(30,16,16,.74),rg
  <div id="list"></div></div>
  <div id="tripB" hidden></div></main></section>
 <section id="stat" class="view"><header class="top"><h1>統計</h1></header><main><div id="statB"></div></main></section>
+<section id="ppl" class="view"><header class="top"><h1>釣り人</h1></header><main>
+ <p class="hint">1番目の人は、ソロ釣行のときと、釣行を使わないときの初期の釣り人になります。家族釣行のときは、記録を始めるたびに「誰が釣りましたか？」と聞き、選んだ人のタックルが入ります。タックルの選択肢は、「設定」の「タックルの選択肢」で編集できます。</p>
+ <div id="peoB"></div>
+ <button id="pAdd" class="ghost" style="width:100%;margin-bottom:10px">＋ 釣り人を追加</button>
+ <button id="pSave" class="pri" style="width:100%">保存</button>
+</main></section>
 <div class="fab"><button id="bLater" class="warn" style="flex:0 0 36%">⚡ あとで記録</button><button id="bNew" class="pri">＋ 釣果を記録</button></div>
-<nav class="tabs"><button data-t="home">🏠<span>ホーム</span></button><button data-t="rec">📖<span>記録</span></button><button data-t="stat">📊<span>統計</span></button><button data-t="set">⚙<span>設定</span></button></nav>
+<nav class="tabs"><button data-t="home">🏠<span>ホーム</span></button><button data-t="rec">📖<span>記録</span></button><button data-t="stat">📊<span>統計</span></button><button data-t="ppl">👤<span>釣り人</span></button><button data-t="set">⚙<span>設定</span></button></nav>
 <div id="toast"></div>
 
 <!-- 記録フォーム -->
@@ -220,7 +226,7 @@ body.night #locbg::after{background:linear-gradient(180deg,rgba(30,16,16,.74),rg
   <label class="ck"><input type="checkbox" id="s_big"><span>大きい文字・大きいボタン</span></label>
   <div class="two"><div><label for="s_ww">風の警告（m/s以上）</label><input id="s_ww" type="number" inputmode="decimal" step="0.5"></div><div><label for="s_wv">波の警告（m以上）</label><input id="s_wv" type="number" inputmode="decimal" step="0.1"></div></div>
   <button id="s_ui" class="pri" style="width:100%;margin-top:10px">警告の基準を保存</button></div>
- <div class="card"><h2>タックル・釣った人の選択肢</h2><p class="hint">1行に1つ入力します。保存すると、記録フォームのプルダウンに反映されます。</p><div id="tkEd"></div><button id="tkSave" class="pri" style="width:100%;margin-top:10px">選択肢を保存</button><button id="tkRst" class="ghost" style="width:100%;margin-top:8px">初期の選択肢に戻す</button></div>
+ <div class="card"><h2>タックルの選択肢</h2><p class="hint">釣り人ごとの初期タックルは「釣り人」タブで設定します。1行に1つ入力します。保存すると、記録フォームのプルダウンに反映されます。</p><div id="tkEd"></div><button id="tkSave" class="pri" style="width:100%;margin-top:10px">選択肢を保存</button><button id="tkRst" class="ghost" style="width:100%;margin-top:8px">初期の選択肢に戻す</button></div>
  
  <div class="card"><h2>元の写真の保存</h2>
   <label style="display:flex;gap:12px;align-items:center;margin:0"><input type="checkbox" id="s_exif" style="width:26px;min-height:26px;flex:none"><span>保存する元の写真のEXIFに「釣果ノート」を書き込む</span></label>
@@ -281,6 +287,7 @@ body.night #locbg::after{background:linear-gradient(180deg,rgba(30,16,16,.74),rg
 </section>
 
 <div class="mask" id="mAll"><div class="modal"><h3>全記録を削除しますか？</h3><p id="mAllT"></p><p class="hint">削除すると元に戻せません。必要なら先にバックアップを書き出してください。</p><button id="mAllBk">先にバックアップを書き出す</button><button id="mAllY" class="warn">すべて削除する</button><button id="mAllN" class="pri">やめる</button></div></div>
+<div class="mask" id="mWho"><div class="modal"><h3>誰が釣りましたか？</h3><div id="whoB"></div><button id="whoNo" class="ghost">やめる</button></div></div>
 <div class="mask" id="mKind"><div class="modal"><h3>どんな釣行ですか？</h3><button id="kSolo" class="pri" style="min-height:64px;font-size:20px">🎣 ソロ</button><button id="kFam" class="pri" style="min-height:64px;font-size:20px">👨‍👩‍👧 家族</button><button id="kNo" class="ghost">やめる</button></div></div>
 <div class="mask" id="mTrip"><div class="modal"><h3>釣行を編集</h3>
  <label for="tr_s">開始</label><input id="tr_s" type="datetime-local">
@@ -579,12 +586,12 @@ function setTk(k,v){const sel=$('#t_'+k),o=$('#t_'+k+'_o'),opts=[...sel.options]
  if(v===''||v==null||opts.includes(v)){sel.value=v||'';o.hidden=true;o.value=''}else{sel.value='__o';o.hidden=false;o.value=v}}
 function getTk(k){const v=$('#t_'+k).value;return v==='__o'?$('#t_'+k+'_o').value.trim():v}
 const F=['sp','size','cnt','ts','place','port','wx','temp','wind','wave','sst','tide','memo'];
-function openForm(r){
+function openForm(r,pp){
  cur=r||null;photo=r?r.photo||null:null;orig=origT=null;$('#bOrig').hidden=true;
  const v=r||{ts:Date.now(),species:'',size:'',count:'',place:env.place,port:env.portTxt,wx:env.wx,temp:env.temp,wind:env.windTxt,wave:env.wave,sst:env.sst,tide:env.tideTxt,memo:''};
  $('#f_sp').value=v.species;$('#f_size').value=v.size;$('#f_cnt').value=v.count;$('#f_ts').value=toLocalIn(v.ts);
  $('#f_place').value=v.place||'';$('#f_port').value=v.port||'';$('#f_wx').value=v.wx||'';$('#f_temp').value=v.temp??'';$('#f_wind').value=v.wind||'';
- $('#f_wave').value=v.wave??'';$('#f_sst').value=v.sst??'';$('#f_tide').value=v.tide||'';$('#f_memo').value=v.memo||'';TK.forEach(t=>setTk(t[0],r?(r[t[0]]||''):t[3]));
+ $('#f_wave').value=v.wave??'';$('#f_sst').value=v.sst??'';$('#f_tide').value=v.tide||'';$('#f_memo').value=v.memo||'';TK.forEach(t=>setTk(t[0],r?(r[t[0]]||''):dflt(pp,t[0])));
  lensUp();$('#fTitle').textContent=r?'記録を編集':'釣果を記録';$('#bDel').hidden=!r;showPhoto();show('form');
 }
 async function save(){
@@ -631,21 +638,21 @@ function openPrint(){if(!records.length){alert('出力できる記録があり�
 async function doPrint(){buildPrint();try{await Promise.all([...document.querySelectorAll('#pa img')].map(i=>i.decode?i.decode().catch(()=>{}):0))}catch(x){}setTimeout(()=>window.print(),150)}
 
 /* ---------- 設定 ---------- */
-function openSet(){$('#s_map').checked=cfg.map!==false;$('#s_night').checked=!!cfg.night;$('#s_big').checked=!!cfg.big;$('#s_ww').value=cfg.ww??10;$('#s_wv').value=cfg.wv??2;$('#tkEd').innerHTML=TK.map(t=>`<label>${t[1]}</label><textarea id="te_${t[0]}" style="min-height:90px">${e(optsOf(t).join('\n'))}</textarea>`).join('');$('#s_exif').checked=cfg.exifTag!==false;$('#ic_name').value=icn.name||'釣果ノート';$('#ic_tx').value=ICON_SY.includes(icn.sym)?'':(icn.sym||'');const s=$('#s_port');s.innerHTML='<option value="auto">自動（最寄りの検潮所）</option>'+PORTS.map((p,i)=>`<option value="${i}">${e(p[0])}</option>`).join('');s.value=cfg.port;$('#s_off').value=cfg.off||0;
+function openSet(){$('#s_map').checked=cfg.map!==false;$('#s_night').checked=!!cfg.night;$('#s_big').checked=!!cfg.big;$('#s_ww').value=cfg.ww??10;$('#s_wv').value=cfg.wv??2;$('#tkEd').innerHTML=TK.filter(t=>t[0]!=='who').map(t=>`<label>${t[1]}</label><textarea id="te_${t[0]}" style="min-height:90px">${e(optsOf(t).join('\n'))}</textarea>`).join('');$('#s_exif').checked=cfg.exifTag!==false;$('#ic_name').value=icn.name||'釣果ノート';$('#ic_tx').value=ICON_SY.includes(icn.sym)?'':(icn.sym||'');const s=$('#s_port');s.innerHTML='<option value="auto">自動（最寄りの検潮所）</option>'+PORTS.map((p,i)=>`<option value="${i}">${e(p[0])}</option>`).join('');s.value=cfg.port;$('#s_off').value=cfg.off||0;
  const nh=(env.om||[]).find(x=>x.type==='H'&&x.t>Date.now());
  if(nh){$('#s_hi').value=hm(nh.t);$('#s_hi_note').textContent='初期値：Open-Meteoの推定（'+hm(nh.t)+'）。上の気象庁の潮位表で確認できた場合は、その時刻に書き換えてください（そちらの方が正確です）。'}
  else{$('#s_hi').value='';$('#s_hi_note').textContent='Open-Meteoの推定時刻を取得できていません。気象庁の潮位表で次の満潮時刻を確認して入力してください。'}
  show('set')}
 
 /* ---------- イベント ---------- */
-$('#bRef').onclick=refresh;$('#bNew').onclick=()=>openForm();document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{const t=b.dataset.t;if(t==='set')openSet();else if(t==='stat'){renderStats();show('stat')}else show(t)});
-$('#bLater').onclick=quick;$('#bBk').onclick=exportJSON;
+$('#bRef').onclick=refresh;$('#bNew').onclick=async()=>{const p=await pickWho();if(p!==false)openForm(null,p)};document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{const t=b.dataset.t;if(t==='set')openSet();else if(t==='ppl')openPeople();else if(t==='stat'){renderStats();show('stat')}else show(t)});
+$('#bLater').onclick=async()=>{const p=await pickWho();if(p!==false)quick(p)};$('#bBk').onclick=exportJSON;
 $('#bNight').onclick=async()=>{cfg.night=!cfg.night;applyUI();await kvSet('cfg',cfg)};
 $('#s_night').onchange=async()=>{cfg.night=$('#s_night').checked;applyUI();await kvSet('cfg',cfg)};
 $('#s_map').onchange=async()=>{cfg.map=$('#s_map').checked;await kvSet('cfg',cfg);locBg(true)};
 $('#s_big').onchange=async()=>{cfg.big=$('#s_big').checked;applyUI();await kvSet('cfg',cfg)};
 $('#s_ui').onclick=async()=>{cfg.ww=parseFloat($('#s_ww').value)||10;cfg.wv=parseFloat($('#s_wv').value)||2;await kvSet('cfg',cfg);renderWarn();toast('警告の基準を保存しました')};
-$('#tkSave').onclick=async()=>{cfg.tkOpts={};TK.forEach(t=>cfg.tkOpts[t[0]]=$('#te_'+t[0]).value.split('\n').map(x=>x.trim()).filter(Boolean));await kvSet('cfg',cfg);buildTk();toast('選択肢を保存しました')};
+$('#tkSave').onclick=async()=>{cfg.tkOpts={};TK.filter(t=>t[0]!=='who').forEach(t=>cfg.tkOpts[t[0]]=$('#te_'+t[0]).value.split('\n').map(x=>x.trim()).filter(Boolean));await kvSet('cfg',cfg);buildTk();toast('選択肢を保存しました')};
 $('#tkRst').onclick=async()=>{delete cfg.tkOpts;await kvSet('cfg',cfg);buildTk();openSet();toast('初期の選択肢に戻しました')};
 $('#tripc').onclick=async ev=>{if(ev.target.closest('#bTripX')){const t0=curTrip();if(t0&&confirm('この釣行の開始を取り消します（釣行を削除します）。よろしいですか？')){await delTrip(t0.id);toast('釣行を取り消しました')}return}
  if(!ev.target.closest('#bTrip'))return;const t=curTrip();
@@ -687,7 +694,7 @@ $('#pN').onchange=buildPrint;$('#pM').onchange=async()=>{cfg.pm4=$('#pM').value;
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-21g';
+const VER='2026-11-21h';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};
@@ -713,6 +720,27 @@ async function doUpdate(){try{await fetch(location.pathname,{cache:'reload'})}ca
 $('#bUpd').onclick=doUpdate;$('#bChk').onclick=()=>checkUpdate(true);
 /* ---------- 新機能 ---------- */
 let tmr,trips=[],trEd=null,kindSel=null;
+/* ---------- 釣り人 ---------- */
+const PK=['rod','reel','lt','lw','bait','wt','col'],PEO0=[{name:'とーやん',rod:'ジギンガーＺ',reel:'レガリス23 2500',lt:'PE',lw:'0.8'},{name:'あやーん'},{name:'カッコ'},{name:'ミーカー'},{name:'ツムギ'}];
+const people=()=>cfg.people&&cfg.people.length?cfg.people:PEO0;
+const dflt=(p,k)=>{p=p||people()[0]||{};return k==='who'?(p.name||''):(p[k]||'')};
+async function migPeople(){if(cfg.people)return;const w=cfg.tkOpts&&cfg.tkOpts.who;cfg.people=(w&&w.length?w.map((n,i)=>i?{name:n}:Object.assign({},PEO0[0],{name:n})):PEO0).map(x=>Object.assign({},x));await kvSet('cfg',cfg)}
+let pd=[],whoRes=null,whoP=[];
+function pSel(i,k,v){const t=TK.find(x=>x[0]===k),o=optsOf(t);return `<label>${t[1]}</label><select data-i="${i}" data-k="${k}"><option value="">（未選択）</option>${o.map(x=>`<option value="${e(x)}"${x===v?' selected':''}>${e(x)}</option>`).join('')}${v&&!o.includes(v)?`<option value="${e(v)}" selected>${e(v)}</option>`:''}</select>`}
+function drawPeople(){$('#peoB').innerHTML=pd.map((p,i)=>`<div class="card"><h2>${i+1}人目${i===0?'（ソロ釣行の対象）':''}</h2><label>名前</label><input data-i="${i}" data-k="name" value="${e(p.name||'')}" placeholder="名前">${PK.map(k=>pSel(i,k,p[k]||'')).join('')}${i?`<div class="row" style="margin-top:10px"><button data-up="${i}">▲ 上へ</button><button data-rm="${i}" class="warn">削除</button></div>`:''}</div>`).join('')}
+function openPeople(){pd=people().map(p=>Object.assign({},p));while(pd.length<5)pd.push({name:''});drawPeople();show('ppl')}
+const pEdit=ev=>{const t=ev.target;if(t&&t.dataset&&t.dataset.i!=null&&t.dataset.k&&pd[+t.dataset.i])pd[+t.dataset.i][t.dataset.k]=t.value};
+$('#peoB').addEventListener('input',pEdit);$('#peoB').addEventListener('change',pEdit);
+$('#peoB').onclick=ev=>{const u=ev.target.closest('[data-up]'),r=ev.target.closest('[data-rm]');
+ if(u){const i=+u.dataset.up;[pd[i-1],pd[i]]=[pd[i],pd[i-1]];drawPeople()}
+ else if(r){const i=+r.dataset.rm;if(confirm((pd[i].name||'この枠')+'を削除しますか？')){pd.splice(i,1);drawPeople()}}};
+$('#pAdd').onclick=()=>{pd.push({name:''});drawPeople()};
+$('#pSave').onclick=async()=>{const L=pd.map(p=>Object.assign({},p,{name:(p.name||'').trim()})).filter(p=>p.name);if(!L.length){alert('名前を1人以上入力してください。');return}
+ const nm=L.map(p=>p.name);if(new Set(nm).size!==nm.length){alert('同じ名前が重複しています。');return}
+ cfg.people=L;await kvSet('cfg',cfg);buildTk();renderList();toast('釣り人を保存しました')};
+function pickWho(){const t=curTrip(),P=people().filter(x=>x.name);if(!(t&&t.kind==='家族')||P.length<2)return Promise.resolve(P[0]||{});
+ whoP=P;return new Promise(res=>{whoRes=res;$('#whoB').innerHTML=P.map((x,i)=>`<button class="pri" data-w="${i}" style="min-height:60px;font-size:19px">${e(x.name)}</button>`).join('');$('#mWho').classList.add('on')})}
+$('#mWho').onclick=ev=>{const b=ev.target.closest('[data-w]');if(b){$('#mWho').classList.remove('on');whoRes(whoP[+b.dataset.w])}else if(ev.target.closest('#whoNo')){$('#mWho').classList.remove('on');whoRes(false)}};
 async function migTk(){if(cfg.mig2)return;const add={rod:['カッコロッド','ダイソーレンジャー','ダイソーパックロッド'],reel:['カッコリール','ダイソーリール']};
  if(cfg.tkOpts)for(const k in add)if(cfg.tkOpts[k])add[k].forEach(x=>{if(!cfg.tkOpts[k].includes(x))cfg.tkOpts[k].push(x)});cfg.mig2=1;await kvSet('cfg',cfg)}
 async function migWho(){if(cfg.mig1)return;for(const r of await getAll())if(r.who==='自分'){r.who='とーやん';await put(r)}
@@ -740,7 +768,7 @@ $('#tr_del').onclick=async()=>{if(!trEd)return;if(!confirm('この釣行を削�
 const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(tmr);tmr=setTimeout(()=>t.style.display='none',3000)};
 const hmm=ms=>{const m=Math.max(0,Math.round(ms/6e4));return(m>=60?Math.floor(m/60)+'時間':'')+(m%60)+'分'};
 function applyUI(){document.body.classList.toggle('night',!!cfg.night);document.body.classList.toggle('big',!!cfg.big);document.querySelector('meta[name=theme-color]').content=cfg.night?'#2a1212':'#14293a'}
-const optsOf=t=>(cfg.tkOpts&&cfg.tkOpts[t[0]])||t[2];
+const optsOf=t=>t[0]==='who'?people().map(p=>p.name).filter(Boolean):(cfg.tkOpts&&cfg.tkOpts[t[0]])||t[2];
 function buildTk(){const keep={};TK.forEach(t=>keep[t[0]]=getTk(t[0]));
  const H=t=>`<label for="t_${t[0]}">${t[1]}</label><select id="t_${t[0]}"><option value="">（未選択）</option>${optsOf(t).map(o=>`<option value="${e(o)}">${e(o)}</option>`).join('')}<option value="__o">その他（自由入力）</option></select><input id="t_${t[0]}_o" placeholder="自由に入力" style="margin-top:6px" hidden>`;
  $('#tk').innerHTML=TK.filter(t=>t[0]!=='who').map(H).join('');$('#tkw').innerHTML=TK.filter(t=>t[0]==='who').map(H).join('');
@@ -766,8 +794,8 @@ const loadTrips=async()=>{trips=(await kvGet('trips'))||[]},saveTrips=()=>kvSet(
 function renderTrip(){const t=curTrip(),c=$('#tripc');
  c.innerHTML=t?`<h2>釣行中${t.kind?'（'+e(t.kind)+'）':''}</h2><div class="big" style="font-size:19px">${hm(t.start)}〜（${hmm(Date.now()-t.start)}経過）</div><div class="sub">${e(t.place||'')}　釣果 ${records.filter(r=>r.tripId===t.id).length}件</div><button id="bTrip" class="warn" style="width:100%;margin-top:8px">釣行を終了</button><button id="bTripX" class="ghost" style="width:100%;margin-top:8px">開始を取り消す（削除）</button>`
  :'<h2>釣行</h2><div class="sub">「釣行を開始」で条件を保存します。釣れなかった日（ボウズ）も統計に入ります。</div><button id="bTrip" class="pri" style="width:100%;margin-top:8px">🎣 釣行を開始</button>'}
-async function quick(){const r={ts:Date.now(),species:'',size:'',count:'',place:env.place||'',port:env.portTxt||'',wx:env.wx||'',temp:env.temp??'',wind:env.windTxt||'',wave:env.wave??'',sst:env.sst??'',tide:env.tideTxt||'',memo:'',lat:env.lat,lon:env.lon,later:true};
- TK.forEach(t=>r[t[0]]=t[3]);const t=curTrip();if(t)r.tripId=t.id;await put(r);await renderList();toast('⚡ 記録しました（写真・魚種はあとで追記）')}
+async function quick(pp){const r={ts:Date.now(),species:'',size:'',count:'',place:env.place||'',port:env.portTxt||'',wx:env.wx||'',temp:env.temp??'',wind:env.windTxt||'',wave:env.wave??'',sst:env.sst??'',tide:env.tideTxt||'',memo:'',lat:env.lat,lon:env.lon,later:true};
+ TK.forEach(t=>r[t[0]]=dflt(pp,t[0]));const t=curTrip();if(t)r.tripId=t.id;await put(r);await renderList();toast('⚡ 記録しました（写真・魚種はあとで追記）')}
 function isPB(rec){const z=parseFloat(rec.size);if(!rec.species||!(z>0))return false;const mx=Math.max(0,...records.filter(r=>r.species===rec.species&&r.id!==rec.id).map(r=>parseFloat(r.size)||0));return mx>0&&z>mx}
 const fishN=r=>parseInt(r.count)||1;
 const stageOf=r=>{const t=r.tide||'';return/満潮前後/.test(t)?'満潮前後':/干潮前後/.test(t)?'干潮前後':/上げ\d分/.test(t)?'上げ潮':/下げ\d分/.test(t)?'下げ潮':'不明'};
@@ -811,7 +839,7 @@ function renderStats(){const R=records,B=$('#statB'),fish=fishN;
 /* ---------- 起動 ---------- */
 (async()=>{
  tick();setInterval(tick,1000);document.body.dataset.v='home';document.querySelector('.tabs button').classList.add('on');$('#ver').textContent=$('#ver2').textContent='アプリのバージョン：'+VER;
- try{await openDB();cfg=Object.assign(cfg,(await kvGet('cfg'))||{});if(cfg.v!==2){cfg.port='auto';cfg.off=0;cfg.v=2;await kvSet('cfg',cfg)}applyUI();await loadTrips();await migWho();await migTk();buildTk();await renderList()}
+ try{await openDB();cfg=Object.assign(cfg,(await kvGet('cfg'))||{});if(cfg.v!==2){cfg.port='auto';cfg.off=0;cfg.v=2;await kvSet('cfg',cfg)}applyUI();await loadTrips();await migWho();await migTk();await migPeople();buildTk();await renderList()}
  catch(x){$('#list').innerHTML='<div class="empty">この環境ではIndexedDBが使えません。プライベートブラウズを解除してください。</div>'}
  try{Object.assign(icn,(await kvGet('icon'))||{})}catch(x){}
  applyIcon();

@@ -256,7 +256,7 @@ body.night #locbg::after{background:linear-gradient(180deg,rgba(30,16,16,.74),rg
   <details><summary>レシピ4：PDFを自動でファイルに保存</summary>
    <ol class="steps"><li>印刷画面で「共有」またはプレビューを2本指でピンチアウトしてPDF化。</li>
    <li>共有シートから「“ファイル”に保存」を選ぶ。</li>
-   <li>保存後、このアプリで「クリアする」を選ぶと記録が空になります。</li></ol></details>
+   <li>記録を消したいときは、「設定」の「全記録を削除」を使います（削除前にバックアップを書き出せます）。</li></ol></details>
  </div>
  <div class="card"><h2>ホーム画面のアイコン・アプリ名</h2>
   <div class="row" style="align-items:flex-start"><img id="icp" alt="アイコンのプレビュー" style="width:90px;height:90px;flex:none;border-radius:20px;border:1px solid var(--line)"><div><label for="ic_name" style="margin-top:0">アプリ名（最大12文字）</label><input id="ic_name" maxlength="12"></div></div>
@@ -276,11 +276,10 @@ body.night #locbg::after{background:linear-gradient(180deg,rgba(30,16,16,.74),rg
 
 <!-- 印刷 -->
 <section id="prt" class="view">
-<div class="tb"><button id="pBack">‹ 戻る</button><select id="pN" style="flex:1;min-width:120px;min-height:46px"><option value="2">2件/ページ</option><option value="3">3件/ページ</option><option value="4" selected>4件/ページ</option></select><select id="pM" style="flex:1;min-width:120px;min-height:46px"><option value="230">余白：小</option><option value="210">余白：標準</option><option value="200">余白：大</option><option value="190">余白：特大</option></select><button id="pGo" class="pri">🖨 印刷／PDF保存</button><button id="pDone" class="warn">出力を完了した</button></div>
+<div class="tb"><button id="pBack">‹ 戻る</button><select id="pN" style="flex:1;min-width:120px;min-height:46px"><option value="2">2件/ページ</option><option value="3">3件/ページ</option><option value="4" selected>4件/ページ</option></select><select id="pM" style="flex:1;min-width:120px;min-height:46px"><option value="230">余白：小</option><option value="210">余白：標準</option><option value="200">余白：大</option><option value="190">余白：特大</option></select><button id="pGo" class="pri">🖨 印刷／PDF保存</button></div>
 <div id="pa"></div>
 </section>
 
-<div class="mask" id="mDone"><div class="modal"><h3>出力が完了しました</h3><p>蓄積された釣果記録をクリアしますか？</p><p class="hint">クリアすると、出力した記録がこの端末から削除されます。心配な場合は先にバックアップを。</p><button id="mBk">先にバックアップを書き出す</button><button id="mClr" class="warn">クリアする（削除）</button><button id="mKeep" class="pri">残す（保持）</button></div></div>
 <div class="mask" id="mAll"><div class="modal"><h3>全記録を削除しますか？</h3><p id="mAllT"></p><p class="hint">削除すると元に戻せません。必要なら先にバックアップを書き出してください。</p><button id="mAllBk">先にバックアップを書き出す</button><button id="mAllY" class="warn">すべて削除する</button><button id="mAllN" class="pri">やめる</button></div></div>
 <div class="mask" id="mKind"><div class="modal"><h3>どんな釣行ですか？</h3><button id="kSolo" class="pri" style="min-height:64px;font-size:20px">🎣 ソロ</button><button id="kFam" class="pri" style="min-height:64px;font-size:20px">👨‍👩‍👧 家族</button><button id="kNo" class="ghost">やめる</button></div></div>
 <div class="mask" id="mTrip"><div class="modal"><h3>釣行を編集</h3>
@@ -410,7 +409,7 @@ const dir16=d=>DIRS[Math.round(d/22.5)%16];
 
 /* ---------- 状態 ---------- */
 let env={lat:null,lon:null,place:'',muni:'',portTxt:'',wx:'',temp:'',windTxt:'',wave:'',sst:'',tideTxt:'',hours:[]};
-let cfg={port:'auto',off:0,v:2},records=[],cur=null,photo=null,orig=null,origT=null,printing=false,printed=[];
+let cfg={port:'auto',off:0,v:2},records=[],cur=null,photo=null,orig=null,origT=null;
 
 function curPort(){let i=0;if(cfg.port!=='auto')i=+cfg.port;else if(env.lat!=null){let b=1e9;PORTS.forEach((p,k)=>{const d=dist(env.lat,env.lon,p[1],p[2]);if(d<b){b=d;i=k}})}return mkPort(PORTS[i])}
 const setSt=m=>$('#st').textContent=m;
@@ -618,7 +617,7 @@ async function importFiles(fs){const out=[];let best=null;
 const row=(l,v,c)=>`<div class="c${c||2}"><dt>${l}</dt><dd>${e(v)||'—'}</dd></div>`;
 function buildPrint(){
  $('#pa').style.setProperty('--H',($('#pM').value||210)+'mm');
- const n=+$('#pN').value,list=[...records].sort((a,b)=>a.ts-b.ts);printed=list.map(r=>r.id);
+ const n=+$('#pN').value,list=[...records].sort((a,b)=>a.ts-b.ts);
  const card=(r,i)=>`<article class="pc"><div class="ph"><span class="no">No.${i+1}</span><h3>${e(r.species||'魚種未記入')}</h3><span class="dt">${fmt(r.ts)}</span></div>
  <div class="pb"><div class="pi">${r.photo?`<img src="${r.photo}" alt="">`:'<i>写真なし</i>'}</div><div class="pr"><dl>
  ${row('サイズ',r.size?r.size+' cm':'')}${row('釣った人',r.who)}${row('天気',r.wx)}${row('気温',r.temp?r.temp+' ℃':'')}${row('波高',r.wave?r.wave+' m':'')}${row('海水温',r.sst?r.sst+' ℃':'')}
@@ -629,9 +628,7 @@ function buildPrint(){
  $('#pa').innerHTML=h;
 }
 function openPrint(){if(!records.length){alert('出力できる記録がありません。');return}$('#pM').value=[...$('#pM').options].some(o=>o.value==cfg.pm4)?cfg.pm4:'210';buildPrint();show('prt')}
-async function doPrint(){printing=true;buildPrint();try{await Promise.all([...document.querySelectorAll('#pa img')].map(i=>i.decode?i.decode().catch(()=>{}):0))}catch(x){}setTimeout(()=>window.print(),150)}
-function askClear(){$('#mDone').classList.add('on')}
-window.addEventListener('afterprint',()=>{if(printing){printing=false;if($('#prt').classList.contains('on'))askClear()}});
+async function doPrint(){buildPrint();try{await Promise.all([...document.querySelectorAll('#pa img')].map(i=>i.decode?i.decode().catch(()=>{}):0))}catch(x){}setTimeout(()=>window.print(),150)}
 
 /* ---------- 設定 ---------- */
 function openSet(){$('#s_map').checked=cfg.map!==false;$('#s_night').checked=!!cfg.night;$('#s_big').checked=!!cfg.big;$('#s_ww').value=cfg.ww??10;$('#s_wv').value=cfg.wv??2;$('#tkEd').innerHTML=TK.map(t=>`<label>${t[1]}</label><textarea id="te_${t[0]}" style="min-height:90px">${e(optsOf(t).join('\n'))}</textarea>`).join('');$('#s_exif').checked=cfg.exifTag!==false;$('#ic_name').value=icn.name||'釣果ノート';$('#ic_tx').value=ICON_SY.includes(icn.sym)?'':(icn.sym||'');const s=$('#s_port');s.innerHTML='<option value="auto">自動（最寄りの検潮所）</option>'+PORTS.map((p,i)=>`<option value="${i}">${e(p[0])}</option>`).join('');s.value=cfg.port;$('#s_off').value=cfg.off||0;
@@ -677,7 +674,7 @@ $('#s_cal').onclick=async()=>{const v=$('#s_hi').value;if(!v){alert('次の満�
  if(Math.abs(d)>90&&!confirm('補正が '+d+' 分と大きくなります。入力した時刻は「次の満潮」で合っていますか？'))return;
  cfg.off=d;$('#s_off').value=d;await kvSet('cfg',cfg);renderTide();alert('時刻補正を '+d+' 分にしました。');};
 $('#s_rst').onclick=async()=>{cfg.off=0;$('#s_off').value=0;await kvSet('cfg',cfg);renderTide();alert('補正を0分に戻しました。')};
-$('#bExp').onclick=exportJSON;$('#mBk').onclick=exportJSON;
+$('#bExp').onclick=exportJSON;
 $('#bImp').onclick=()=>$('#impf').click();
 $('#impf').onchange=async ev=>{const fs=[...ev.target.files];ev.target.value='';if(fs.length)await importFiles(fs)};
 $('#bPers').onclick=async()=>{try{const ok=navigator.storage&&navigator.storage.persist?await navigator.storage.persist():false;alert(ok?'永続保存が許可されました。':'永続保存は許可されませんでした。ホーム画面に追加し、バックアップを併用してください。')}catch(x){alert('この環境では利用できません。')}};
@@ -685,14 +682,12 @@ $('#bAll').onclick=()=>{if(!records.length){alert('削除できる記録があ�
 $('#mAllN').onclick=()=>$('#mAll').classList.remove('on');$('#mAllBk').onclick=exportJSON;
 $('#mAllY').onclick=async()=>{try{await tx('rec','readwrite',st=>st.clear())}catch(x){alert('削除に失敗しました：'+x.message);return}$('#mAll').classList.remove('on');trips=[];await saveTrips();await renderList();alert('すべての記録を削除しました。')};
 $('#bPrint').onclick=openPrint;$('#bPrint2').onclick=()=>{show('home');openPrint()};
-$('#pN').onchange=buildPrint;$('#pM').onchange=async()=>{cfg.pm4=$('#pM').value;await kvSet('cfg',cfg);buildPrint()};$('#pGo').onclick=doPrint;$('#pDone').onclick=askClear;
-$('#mKeep').onclick=()=>{$('#mDone').classList.remove('on');show('home')};
-$('#mClr').onclick=async()=>{for(const id of printed)await del(id);printed=[];$('#mDone').classList.remove('on');await renderList();show('home')};
+$('#pN').onchange=buildPrint;$('#pM').onchange=async()=>{cfg.pm4=$('#pM').value;await kvSet('cfg',cfg);buildPrint()};$('#pGo').onclick=doPrint;
 
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-21e';
+const VER='2026-11-21f';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};

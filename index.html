@@ -163,7 +163,7 @@ body.night #locbg::after{background:linear-gradient(180deg,rgba(30,16,16,.74),rg
   <div class="two" style="margin-top:8px"><select id="fq_pr"><option value="">期間：すべて</option><option value="30">直近30日</option><option value="90">直近90日</option><option value="365">直近1年</option></select><select id="fq_st"><option value="">状態：すべて</option><option value="later">追記待ちのみ</option><option value="pb">自己ベストのみ</option></select></div>
   <div class="two" style="margin-top:8px"><select id="fq_wh"><option value="">釣った人：すべて</option></select><select id="fq_kd"><option value="">釣行の種類：すべて</option><option value="ソロ">ソロ釣行</option><option value="家族">家族釣行</option><option value="なし">釣行なし</option></select></div>
   <div style="margin-top:8px"><select id="fq_tr" aria-label="特定の釣行"></select></div>
-  <div id="fq_n" class="sub" style="margin-top:6px"></div></div>
+  <div class="row" style="margin-top:6px;align-items:center"><div id="fq_n" class="sub" style="flex:1"></div><button id="fq_clr" class="ghost" style="min-height:40px;flex:0 0 auto;font-size:14px" hidden>✕ 絞り込みをクリア</button></div></div>
  <div id="list"></div></div>
  <div id="tripB" hidden></div></main></section>
 <section id="stat" class="view"><header class="top"><h1>統計</h1></header><main><div id="statB"></div></main></section>
@@ -498,7 +498,7 @@ function drawList(){fillTr();const f={tr:$('#fq_tr').value,q:$('#q').value.trim(
  const ok=r=>{if(f.tr&&String(r.tripId)!==f.tr)return false;if(f.sp&&r.species!==f.sp)return false;if(f.wh&&r.who!==f.wh)return false;if(f.kd){const tp=trips.find(t=>t.id===r.tripId);if(f.kd==='なし'?!!tp:!(tp&&tp.kind===f.kd))return false}if(f.tn&&tName(r)!==f.tn)return false;if(f.pr&&Date.now()-r.ts>f.pr*864e5)return false;
   if(f.st==='later'&&!r.later)return false;if(f.st==='pb'&&!(r.species&&parseFloat(r.size)>0&&parseFloat(r.size)===best[r.species]))return false;
   if(f.q){const hay=[r.species,r.place,r.port,r.memo,r.rod,r.reel,r.lt,r.lw,r.bait,r.wt,r.col,r.wx,r.wind,r.tide].join(' ').toLowerCase();if(!f.q.split(/\s+/).every(w=>hay.includes(w)))return false}return true};
- const list=records.filter(ok);shownList=list;$('#bPrint').textContent=list.length<records.length?`🖨 PDF（${list.length}件）`:'🖨 PDF';$('#fq_n').textContent=records.length?`${list.length} / ${records.length}件`:'';
+ const list=records.filter(ok);shownList=list;$('#fq_clr').hidden=!Object.values(f).some(Boolean);$('#bPrint').textContent=list.length<records.length?`🖨 PDF（${list.length}件）`:'🖨 PDF';$('#fq_n').textContent=records.length?`${list.length} / ${records.length}件`:'';
  $('#list').innerHTML=list.length?list.map(r=>{const tn=tName(r),z=parseFloat(r.size)||0;return `<button class="item" data-id="${r.id}">${r.photo?`<img src="${r.photo}" alt="">`:'<div class="ni">写真なし</div>'}<div><b>${e(r.species||'魚種未記入')}${r.size?'　'+e(r.size)+'cm':''}${r.count?'　×'+e(r.count):''}</b><span>${fmt(r.ts)}</span><span>${e(r.place)}</span><div class="tg">${r.who?`<i>👤 ${e(r.who)}</i>`:''}${kindOf(r)?`<i>${e(kindOf(r))}</i>`:''}${tn!=='不明'?`<i>${tn}</i>`:''}${r.species&&z&&z===best[r.species]?'<i class="pb">🏆自己ベスト</i>':''}${r.later?'<i class="lt">⏳追記待ち</i>':''}</div></div></button>`}).join(''):`<div class="empty">${records.length?'条件に合う記録がありません。':'まだ記録がありません。<br>下のボタンから最初の1匹を記録しましょう。'}</div>`}
 ['#q','#fq_sp','#fq_tn','#fq_pr','#fq_st','#fq_wh','#fq_kd','#fq_tr'].forEach(x=>$(x).addEventListener(x==='#q'?'input':'change',drawList));
 
@@ -590,7 +590,9 @@ function setTk(k,v){const sel=$('#t_'+k),o=$('#t_'+k+'_o'),opts=[...sel.options]
  if(v===''||v==null||opts.includes(v)){sel.value=v||'';o.hidden=true;o.value=''}else{sel.value='__o';o.hidden=false;o.value=v}}
 function getTk(k){const v=$('#t_'+k).value;return v==='__o'?$('#t_'+k+'_o').value.trim():v}
 const F=['sp','size','cnt','ts','place','port','wx','temp','wind','wave','sst','tide','memo'];
-function openForm(r,pp){
+let formFrom='home',formY=0;
+const backForm=()=>{show(formFrom);if(formFrom==='rec')window.scrollTo(0,formY)};
+function openForm(r,pp){formFrom=document.body.dataset.v==='rec'?'rec':'home';formY=window.scrollY||0;
  cur=r||null;photo=r?r.photo||null:null;orig=origT=null;$('#bOrig').hidden=true;
  const v=r||{ts:Date.now(),species:'',size:'',count:'',place:env.place,port:env.portTxt,wx:env.wx,temp:env.temp,wind:env.windTxt,wave:env.wave,sst:env.sst,tide:env.tideTxt,memo:''};
  $('#f_sp').value=v.species;$('#f_size').value=v.size;$('#f_cnt').value=v.count;$('#f_ts').value=toLocalIn(v.ts);
@@ -604,7 +606,7 @@ async function save(){
  rec.later=!(rec.species||rec.photo);if(!cur){const t=curTrip();if(t)rec.tripId=t.id}
  const pb=isPB(rec);
  try{await put(rec)}catch(x){alert('保存に失敗しました：'+x.message);return}
- await renderList();show('home');if(pb)toast('🏆 自己ベスト更新！'+rec.species+' '+rec.size+'cm');
+ await renderList();backForm();if(pb)toast('🏆 自己ベスト更新！'+rec.species+' '+rec.size+'cm');
 }
 
 /* ---------- バックアップ ---------- */
@@ -665,7 +667,8 @@ $('#tripc').onclick=async ev=>{if(ev.target.closest('#bTripX')){const t0=curTrip
  if(!ev.target.closest('#bTrip'))return;const t=curTrip();
  if(!t){if(!kindSel){$('#mKind').classList.add('on');return}trips.push({id:Date.now(),start:Date.now(),kind:kindSel,place:env.place||'',port:env.portTxt||'',tn:(env.tideShort||'').split('・')[0],tide:env.tideTxt||'',wx:env.wx||'',temp:env.temp||'',wind:env.windTxt||'',wave:env.wave||'',sst:env.sst||'',lat:env.lat,lon:env.lon});kindSel=null;await saveTrips();renderTrip();toast('🎣 釣行を開始しました')}
  else{t.end=Date.now();await saveTrips();const n=records.filter(r=>r.tripId===t.id).length;renderTrip();toast(n?`釣行を終了（釣果 ${n}件）`:'釣行を終了（ボウズ）')}};
-$('#fBack').onclick=()=>show('home');$('#sBack').onclick=()=>show('home');$('#pBack').onclick=()=>show('home');
+$('#fq_clr').onclick=()=>{$('#q').value='';['#fq_sp','#fq_tn','#fq_pr','#fq_st','#fq_wh','#fq_kd','#fq_tr'].forEach(x=>$(x).value='');drawList()};
+$('#fBack').onclick=backForm;$('#sBack').onclick=()=>show('home');$('#pBack').onclick=()=>show('home');
 $('#list').onclick=ev=>{const b=ev.target.closest('.item');if(b)openForm(records.find(r=>r.id===+b.dataset.id))};
 $('#bPhoto').onclick=()=>$('#f_photo').click();
 $('#f_photo').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{photo=await resizeImg(f);orig=f;origT=cfg.exifTag===false?f:await tagExif(f).catch(()=>f);$('#bOrig').hidden=false;showPhoto()}catch(x){alert(x.message)}ev.target.value=''};
@@ -678,7 +681,7 @@ $('#chips').onclick=ev=>{const c=ev.target.dataset.c;if(!c)return;const m=$('#f_
 $('#bSave').onclick=save;
 $('#bDel').onclick=()=>$('#mDel').classList.add('on');
 $('#mDelN').onclick=()=>$('#mDel').classList.remove('on');
-$('#mDelY').onclick=async()=>{$('#mDel').classList.remove('on');if(cur){await del(cur.id);await renderList()}show('home')};
+$('#mDelY').onclick=async()=>{$('#mDel').classList.remove('on');if(cur){await del(cur.id);await renderList()}backForm()};
 $('#s_exif').onchange=async()=>{cfg.exifTag=$('#s_exif').checked;await kvSet('cfg',cfg)};
 $('#s_save').onclick=async()=>{cfg.port=$('#s_port').value;cfg.off=parseInt($('#s_off').value,10)||0;await kvSet('cfg',cfg);renderTide();alert('保存しました。')};
 $('#s_cal').onclick=async()=>{const v=$('#s_hi').value;if(!v){alert('次の満潮時刻を入力してください。');return}
@@ -701,7 +704,7 @@ $('#pN').onchange=buildPrint;$('#pM').onchange=async()=>{cfg.pm4=$('#pM').value;
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-22a';
+const VER='2026-11-23a';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};

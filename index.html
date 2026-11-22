@@ -77,7 +77,7 @@ details{border-top:1px solid var(--line);padding:8px 0}summary{font-weight:700;m
 .pb{display:flex;gap:3mm;flex:1;min-height:0}
 .pi{flex:0 0 34%;aspect-ratio:3/4;align-self:flex-start;position:relative;background:var(--foam);overflow:hidden;border:.3mm solid var(--ink)}.pi img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;display:block}.pi i{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:#6b8290}
 .pr{flex:1;min-width:0;display:flex;flex-direction:column;gap:1.5mm}.pb dl{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:1mm 2.5mm;align-content:start}
-.pb dl div{border-bottom:.2mm solid var(--line);padding-bottom:.6mm;min-width:0;display:flex;gap:1.5mm;align-items:baseline}.pb dt{flex:none}.pb dl .c2,.pb dl .c3{grid-column:span 1}.pb dl .c4,.pb dl .c6{grid-column:span 2}
+.pb dl div{border-bottom:.2mm solid var(--line);padding-bottom:.6mm;min-width:0;display:flex;gap:1.5mm;align-items:baseline}.pb dt{flex:none}.pb dl .c2,.pb dl .c3,.pb dl .c4,.pb dl .c5{grid-column:span 1}.pb dl .c6,.pb dl .c7,.pb dl .c9,.pb dl .c12{grid-column:span 2}
 .pb dt{font-size:9px;color:var(--sea);font-weight:700}.pb dd{margin:0;font-size:12px;overflow-wrap:anywhere;line-height:1.3}
 .pm{margin:0;border:.2mm solid var(--line);padding:1mm 2mm;font-size:11px;line-height:1.4;overflow:hidden;max-height:17mm}.pm b{color:var(--sea);margin-right:2mm;font-size:9px}
 @media print{
@@ -92,8 +92,8 @@ body{padding:0}
 .pc{flex:0 0 calc((var(--H) - 5mm - var(--n)*4mm)/var(--n));min-height:0}
 .pf{height:5mm;font-size:8pt}
 .ph h3{font-size:17pt}.ph .dt{font-size:9pt}.ph .no{font-size:8pt}
-.pb dt{font-size:6.5pt}.pb dd{font-size:8.5pt;line-height:1.25}.pm{font-size:8pt;max-height:var(--pm)}
-.pb{align-items:flex-start}.pi{flex:0 0 auto;width:calc(var(--ph)*3/4);height:var(--ph);aspect-ratio:auto}.pb dl{grid-template-columns:repeat(6,1fr)}.pb dl .c2{grid-column:span 2}.pb dl .c3{grid-column:span 3}.pb dl .c4{grid-column:span 4}.pb dl .c6{grid-column:span 6}
+.pb dt{font-size:6.5pt}.pb dd{font-size:8.5pt;line-height:1.25}.pm{font-size:8pt;line-height:1.35;max-height:none;display:-webkit-box;-webkit-line-clamp:var(--lc);-webkit-box-orient:vertical;overflow:hidden}
+.pb{align-items:flex-start}.pi{flex:0 0 auto;width:calc(var(--ph)*3/4);height:var(--ph);aspect-ratio:auto}.pb dl{grid-template-columns:repeat(12,1fr)}.pb dl .c2{grid-column:span 2}.pb dl .c3{grid-column:span 3}.pb dl .c6{grid-column:span 6}.pb dl .c7{grid-column:span 7}.pb dl .c9{grid-column:span 9}.pb dl .c12{grid-column:span 12}
 *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 .ck{display:flex;gap:12px;align-items:center;margin:8px 0;font-weight:400}.ck input{width:26px;min-height:26px;flex:none}
@@ -632,11 +632,13 @@ function buildPrint(){
  $('#pInfo').textContent=list.length<records.length?`絞り込み中：${list.length} / ${records.length}件を出力します`:`全${list.length}件を出力します`;
  const card=(r,i)=>`<article class="pc"><div class="ph"><span class="no">No.${i+1}</span><h3>${e(r.species||'魚種未記入')}</h3><span class="dt">${fmt(r.ts)}</span></div>
  <div class="pb"><div class="pi">${r.photo?`<img src="${r.photo}" alt="">`:'<i>写真なし</i>'}</div><div class="pr"><dl>
- ${row('サイズ',r.size?r.size+' cm':'')}${row('釣った人',r.who)}${row('天気',r.wx)}${row('気温',r.temp?r.temp+' ℃':'')}${row('波高',r.wave?r.wave+' m':'')}${row('海水温',r.sst?r.sst+' ℃':'')}
- ${row('風',r.wind,2)}${row('潮汐',r.tide,4)}${row('場所',(r.place||'')+(r.lat!=null?'（'+r.lat.toFixed(4)+', '+r.lon.toFixed(4)+'）':''),6)}
- ${row('ロッド',r.rod,2)}${row('リール',r.reel,2)}${row('ライン',[r.lt,r.lw?(isNaN(r.lw)?r.lw:r.lw+'号'):''].filter(Boolean).join(' '),2)}${row('エサ・ルアー',[r.bait,r.wt,r.col].filter(Boolean).join('／'),6)}</dl><p class="pm"><b>メモ</b>${e(r.memo)||'—'}</p></div></div></article>`;
+ ${row('サイズ',r.size?r.size+' cm':'',2)}${row('匹数',r.count?r.count+' 匹':'',2)}${row('釣った人',r.who,2)}${row('天気',r.wx,2)}${row('気温',r.temp?r.temp+' ℃':'',2)}${row('波高',r.wave?r.wave+' m':'',2)}
+ ${row('海水温',r.sst?r.sst+' ℃':'',2)}${row('風',r.wind,3)}${row('潮汐',r.tide,7)}
+ ${row('場所',(r.place||'')+(r.lat!=null?'（'+r.lat.toFixed(4)+', '+r.lon.toFixed(4)+'）':''),12)}
+ ${row('ロッド',r.rod,6)}${row('リール',r.reel,6)}
+ ${row('ライン',[r.lt,r.lw?(isNaN(r.lw)?r.lw:r.lw+'号'):''].filter(Boolean).join(' '),3)}${row('エサ・ルアー',[r.bait,r.wt,r.col].filter(Boolean).join('／'),9)}</dl><p class="pm"><b>メモ</b>${e(r.memo)||'—'}</p></div></div></article>`;
  let h='';const pages=Math.ceil(list.length/n);
- for(let p=0;p<pages;p++)h+=`<div class="page" style="--n:${n};--pm:${{2:30,3:18,4:11}[n]}mm">${list.slice(p*n,p*n+n).map((r,i)=>card(r,p*n+i)).join('')}<div class="pf">釣果図鑑カード　${p+1} / ${pages}</div></div>`;
+ for(let p=0;p<pages;p++)h+=`<div class="page" style="--n:${n};--lc:${{2:6,3:3,4:2}[n]}">${list.slice(p*n,p*n+n).map((r,i)=>card(r,p*n+i)).join('')}<div class="pf">釣果図鑑カード　${p+1} / ${pages}</div></div>`;
  $('#pa').innerHTML=h;
 }
 function openPrint(){if(!shownList.length){alert('出力できる記録がありません。'+(records.length?'（絞り込みの結果が0件です）':''));return}$('#pM').value=[...$('#pM').options].some(o=>o.value==cfg.pm4)?cfg.pm4:'210';buildPrint();show('prt')}
@@ -699,7 +701,7 @@ $('#pN').onchange=buildPrint;$('#pM').onchange=async()=>{cfg.pm4=$('#pM').value;
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-21i';
+const VER='2026-11-22a';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};

@@ -129,6 +129,7 @@ body.night .hl small{color:#c9857a}
 #locbg .lbd{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border:3px solid var(--red);border-radius:50%;background:#ffffff88}
 .loccard>.lba{position:absolute;right:8px;bottom:3px;font-size:9px;color:#4b6270;z-index:1}
 body.night #locbg::after{background:linear-gradient(180deg,rgba(30,16,16,.74),rgba(30,16,16,.5) 60%,rgba(30,16,16,.72))}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -160,7 +161,8 @@ body.night #locbg::after{background:linear-gradient(180deg,rgba(30,16,16,.74),rg
  <div class="card" id="flt"><input id="q" type="search" placeholder="🔍 魚種・場所・メモ・タックルで検索" autocomplete="off">
   <div class="two" style="margin-top:8px"><select id="fq_sp"><option value="">魚種：すべて</option></select><select id="fq_tn"><option value="">潮名：すべて</option><option>大潮</option><option>中潮</option><option>小潮</option><option>長潮</option><option>若潮</option></select></div>
   <div class="two" style="margin-top:8px"><select id="fq_pr"><option value="">期間：すべて</option><option value="30">直近30日</option><option value="90">直近90日</option><option value="365">直近1年</option></select><select id="fq_st"><option value="">状態：すべて</option><option value="later">追記待ちのみ</option><option value="pb">自己ベストのみ</option></select></div>
-  <div class="two" style="margin-top:8px"><select id="fq_wh"><option value="">釣った人：すべて</option></select><select id="fq_kd"><option value="">釣行：すべて</option><option value="ソロ">ソロ釣行</option><option value="家族">家族釣行</option><option value="なし">釣行なし</option></select></div>
+  <div class="two" style="margin-top:8px"><select id="fq_wh"><option value="">釣った人：すべて</option></select><select id="fq_kd"><option value="">釣行の種類：すべて</option><option value="ソロ">ソロ釣行</option><option value="家族">家族釣行</option><option value="なし">釣行なし</option></select></div>
+  <div style="margin-top:8px"><select id="fq_tr" aria-label="特定の釣行"></select></div>
   <div id="fq_n" class="sub" style="margin-top:6px"></div></div>
  <div id="list"></div></div>
  <div id="tripB" hidden></div></main></section>
@@ -282,7 +284,7 @@ body.night #locbg::after{background:linear-gradient(180deg,rgba(30,16,16,.74),rg
 
 <!-- 印刷 -->
 <section id="prt" class="view">
-<div class="tb"><button id="pBack">‹ 戻る</button><select id="pN" style="flex:1;min-width:120px;min-height:46px"><option value="2">2件/ページ</option><option value="3">3件/ページ</option><option value="4" selected>4件/ページ</option></select><select id="pM" style="flex:1;min-width:120px;min-height:46px"><option value="230">余白：小</option><option value="210">余白：標準</option><option value="200">余白：大</option><option value="190">余白：特大</option></select><button id="pGo" class="pri">🖨 印刷／PDF保存</button></div>
+<div class="tb"><div id="pInfo" class="sub" style="width:100%;color:#fff;font-weight:700"></div><button id="pBack">‹ 戻る</button><select id="pN" style="flex:1;min-width:120px;min-height:46px"><option value="2">2件/ページ</option><option value="3">3件/ページ</option><option value="4" selected>4件/ページ</option></select><select id="pM" style="flex:1;min-width:120px;min-height:46px"><option value="230">余白：小</option><option value="210">余白：標準</option><option value="200">余白：大</option><option value="190">余白：特大</option></select><button id="pGo" class="pri">🖨 印刷／PDF保存</button></div>
 <div id="pa"></div>
 </section>
 
@@ -489,14 +491,16 @@ async function renderList(){
  $('#spList').innerHTML=[...new Set(records.map(r=>r.species).filter(Boolean))].map(x=>`<option value="${e(x)}">`).join('');
  $('#cnt').textContent=`保存中の記録：${records.length}件`;drawList();renderBk();renderTrip();
 }
-function drawList(){const f={q:$('#q').value.trim().toLowerCase(),sp:$('#fq_sp').value,tn:$('#fq_tn').value,pr:+$('#fq_pr').value||0,st:$('#fq_st').value,wh:$('#fq_wh').value,kd:$('#fq_kd').value},best={};
+function fillTr(){const sl=$('#fq_tr'),v=sl.value;sl.innerHTML='<option value="">特定の釣行：すべて</option>'+[...trips].sort((a,b)=>b.start-a.start).map(t=>`<option value="${t.id}">${fmt(t.start).slice(5,10)} ${e((t.place||'場所不明').slice(-8))}${t.kind?'（'+t.kind+'）':''}</option>`).join('');sl.value=[...sl.options].some(o=>o.value===v)?v:''}
+let shownList=[];
+function drawList(){fillTr();const f={tr:$('#fq_tr').value,q:$('#q').value.trim().toLowerCase(),sp:$('#fq_sp').value,tn:$('#fq_tn').value,pr:+$('#fq_pr').value||0,st:$('#fq_st').value,wh:$('#fq_wh').value,kd:$('#fq_kd').value},best={};
  records.forEach(r=>{const z=parseFloat(r.size)||0;if(r.species&&z>(best[r.species]||0))best[r.species]=z});
- const ok=r=>{if(f.sp&&r.species!==f.sp)return false;if(f.wh&&r.who!==f.wh)return false;if(f.kd){const tp=trips.find(t=>t.id===r.tripId);if(f.kd==='なし'?!!tp:!(tp&&tp.kind===f.kd))return false}if(f.tn&&tName(r)!==f.tn)return false;if(f.pr&&Date.now()-r.ts>f.pr*864e5)return false;
+ const ok=r=>{if(f.tr&&String(r.tripId)!==f.tr)return false;if(f.sp&&r.species!==f.sp)return false;if(f.wh&&r.who!==f.wh)return false;if(f.kd){const tp=trips.find(t=>t.id===r.tripId);if(f.kd==='なし'?!!tp:!(tp&&tp.kind===f.kd))return false}if(f.tn&&tName(r)!==f.tn)return false;if(f.pr&&Date.now()-r.ts>f.pr*864e5)return false;
   if(f.st==='later'&&!r.later)return false;if(f.st==='pb'&&!(r.species&&parseFloat(r.size)>0&&parseFloat(r.size)===best[r.species]))return false;
   if(f.q){const hay=[r.species,r.place,r.port,r.memo,r.rod,r.reel,r.lt,r.lw,r.bait,r.wt,r.col,r.wx,r.wind,r.tide].join(' ').toLowerCase();if(!f.q.split(/\s+/).every(w=>hay.includes(w)))return false}return true};
- const list=records.filter(ok);$('#fq_n').textContent=records.length?`${list.length} / ${records.length}件`:'';
+ const list=records.filter(ok);shownList=list;$('#bPrint').textContent=list.length<records.length?`🖨 PDF（${list.length}件）`:'🖨 PDF';$('#fq_n').textContent=records.length?`${list.length} / ${records.length}件`:'';
  $('#list').innerHTML=list.length?list.map(r=>{const tn=tName(r),z=parseFloat(r.size)||0;return `<button class="item" data-id="${r.id}">${r.photo?`<img src="${r.photo}" alt="">`:'<div class="ni">写真なし</div>'}<div><b>${e(r.species||'魚種未記入')}${r.size?'　'+e(r.size)+'cm':''}${r.count?'　×'+e(r.count):''}</b><span>${fmt(r.ts)}</span><span>${e(r.place)}</span><div class="tg">${r.who?`<i>👤 ${e(r.who)}</i>`:''}${kindOf(r)?`<i>${e(kindOf(r))}</i>`:''}${tn!=='不明'?`<i>${tn}</i>`:''}${r.species&&z&&z===best[r.species]?'<i class="pb">🏆自己ベスト</i>':''}${r.later?'<i class="lt">⏳追記待ち</i>':''}</div></div></button>`}).join(''):`<div class="empty">${records.length?'条件に合う記録がありません。':'まだ記録がありません。<br>下のボタンから最初の1匹を記録しましょう。'}</div>`}
-['#q','#fq_sp','#fq_tn','#fq_pr','#fq_st','#fq_wh','#fq_kd'].forEach(x=>$(x).addEventListener(x==='#q'?'input':'change',drawList));
+['#q','#fq_sp','#fq_tn','#fq_pr','#fq_st','#fq_wh','#fq_kd','#fq_tr'].forEach(x=>$(x).addEventListener(x==='#q'?'input':'change',drawList));
 
 /* ---------- 環境データ取得 ---------- */
 async function refresh(){
@@ -624,7 +628,8 @@ async function importFiles(fs){const out=[];let best=null;
 const row=(l,v,c)=>`<div class="c${c||2}"><dt>${l}</dt><dd>${e(v)||'—'}</dd></div>`;
 function buildPrint(){
  $('#pa').style.setProperty('--H',($('#pM').value||210)+'mm');
- const n=+$('#pN').value,list=[...records].sort((a,b)=>a.ts-b.ts);
+ const n=+$('#pN').value,list=[...shownList].sort((a,b)=>a.ts-b.ts);
+ $('#pInfo').textContent=list.length<records.length?`絞り込み中：${list.length} / ${records.length}件を出力します`:`全${list.length}件を出力します`;
  const card=(r,i)=>`<article class="pc"><div class="ph"><span class="no">No.${i+1}</span><h3>${e(r.species||'魚種未記入')}</h3><span class="dt">${fmt(r.ts)}</span></div>
  <div class="pb"><div class="pi">${r.photo?`<img src="${r.photo}" alt="">`:'<i>写真なし</i>'}</div><div class="pr"><dl>
  ${row('サイズ',r.size?r.size+' cm':'')}${row('釣った人',r.who)}${row('天気',r.wx)}${row('気温',r.temp?r.temp+' ℃':'')}${row('波高',r.wave?r.wave+' m':'')}${row('海水温',r.sst?r.sst+' ℃':'')}
@@ -634,7 +639,7 @@ function buildPrint(){
  for(let p=0;p<pages;p++)h+=`<div class="page" style="--n:${n};--pm:${{2:30,3:18,4:11}[n]}mm">${list.slice(p*n,p*n+n).map((r,i)=>card(r,p*n+i)).join('')}<div class="pf">釣果図鑑カード　${p+1} / ${pages}</div></div>`;
  $('#pa').innerHTML=h;
 }
-function openPrint(){if(!records.length){alert('出力できる記録がありません。');return}$('#pM').value=[...$('#pM').options].some(o=>o.value==cfg.pm4)?cfg.pm4:'210';buildPrint();show('prt')}
+function openPrint(){if(!shownList.length){alert('出力できる記録がありません。'+(records.length?'（絞り込みの結果が0件です）':''));return}$('#pM').value=[...$('#pM').options].some(o=>o.value==cfg.pm4)?cfg.pm4:'210';buildPrint();show('prt')}
 async function doPrint(){buildPrint();try{await Promise.all([...document.querySelectorAll('#pa img')].map(i=>i.decode?i.decode().catch(()=>{}):0))}catch(x){}setTimeout(()=>window.print(),150)}
 
 /* ---------- 設定 ---------- */
@@ -694,7 +699,7 @@ $('#pN').onchange=buildPrint;$('#pM').onchange=async()=>{cfg.pm4=$('#pM').value;
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-21h';
+const VER='2026-11-21i';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};

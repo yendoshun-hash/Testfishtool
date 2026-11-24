@@ -193,7 +193,7 @@ body.night #locbg::after{background:linear-gradient(180deg,rgba(30,16,16,.74),rg
  <div id="tkw"></div>
  <div class="two"><div><label for="f_size">サイズ（cm）</label><input id="f_size" inputmode="decimal" placeholder="任意"></div><div><label for="f_cnt">匹数</label><input id="f_cnt" inputmode="numeric" placeholder="任意"></div></div>
  <div class="card" style="margin-top:16px"><h2>タックル</h2><div id="tk"></div></div>
- <div class="card" style="margin-top:16px"><h2>環境データ（自動入力・修正可）</h2>
+ <div class="card" style="margin-top:16px"><h2>環境データ（自動入力・修正可）</h2><div id="envNote" class="sub"></div>
   <label for="f_ts">日時</label><input id="f_ts" type="datetime-local">
   <label for="f_place">場所</label><input id="f_place">
   <a id="bMap" class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/maps" style="width:100%;margin-top:8px">📍 Googleマップで開く</a>
@@ -504,12 +504,13 @@ function drawList(){fillTr();const f={tr:$('#fq_tr').value,q:$('#q').value.trim(
 
 /* ---------- 環境データ取得 ---------- */
 async function refresh(){
+ const w0=env.updW||0;
  setSt('位置情報を取得中…');
  if(!window.isSecureContext||location.protocol==='file:')setSt('⚠ HTTPSで開かれていないため、GPS・通信が制限されます（現在：'+location.protocol+'）。');
  try{
   const p=await new Promise((ok,ng)=>navigator.geolocation?navigator.geolocation.getCurrentPosition(ok,ng,{enableHighAccuracy:true,timeout:15000,maximumAge:30000}):ng(new Error('この端末は位置情報に非対応です')));
   env.lat=p.coords.latitude;env.lon=p.coords.longitude;
- }catch(err){setSt('位置情報を取得できません（'+(err.message||'許可が必要です')+'）。GPSを許可し、HTTPSで開いてください。（'+location.protocol+'）');if(env.lat==null){env.place='現在地不明（位置情報が取得できません）';$('#loc').textContent=env.place}else{setSt('位置情報が取れないため、保存済みの情報を表示中');renderLoc();renderWx()};renderTide();return}
+ }catch(err){setSt('位置情報を取得できません（'+(err.message||'許可が必要です')+'）。GPSを許可し、HTTPSで開いてください。（'+location.protocol+'）');if(env.lat==null){env.place='現在地不明（位置情報が取得できません）';$('#loc').textContent=env.place;renderTide();return}setSt('位置情報が取れないため、前回の位置で更新します')}
  renderLoc();renderTide();setSt('気象・海象を取得中…');
  const {lat,lon}=env;
  const jobs=[
@@ -532,11 +533,13 @@ async function refresh(){
   if(b.status==='fulfilled'&&b.value.current){const c=b.value.current;if(c.wave_height!=null)w.wave=c.wave_height.toFixed(1);if(c.sea_surface_temperature!=null)w.sst=c.sea_surface_temperature.toFixed(1)}
   if(a.status!=='fulfilled'){env.wxErr='気象データを取得できませんでした：'+(a.reason&&a.reason.message||'通信エラー')+'（HTTPSで開いているか確認してください）'}
   if(a.status!=='fulfilled'&&b.status!=='fulfilled'){env.wxErr=env.w?'通信できないため、保存済みの情報を表示中':'気象データを取得できませんでした';renderWx();return}
-  env.w=w;env.stale=0;
-  env.wx=w.label;env.temp=w.temp==='—'?'':w.temp;env.windTxt=w.dir==='—'?'':`${w.dir}の風 ${w.spd}m/s`;env.wave=w.wave==='—'?'':w.wave;env.sst=w.sst==='—'?'':w.sst;
+  if(a.status==='fulfilled')env.updW=Date.now();if(b.status==='fulfilled'&&b.value.current)env.updM=Date.now();
+  const nw={};Object.keys(w).forEach(k=>{if(w[k]!=='—')nw[k]=w[k]});env.w=Object.assign({icon:'❔',label:'—',temp:'—',dir:'—',spd:'—',wave:'—',sst:'—'},env.w||{},nw);
+  const W=env.w;env.wx=W.label==='—'?'':W.label;env.temp=W.temp==='—'?'':W.temp;env.windTxt=W.dir==='—'?'':`${W.dir}の風 ${W.spd}m/s`;env.wave=W.wave==='—'?'':W.wave;env.sst=W.sst==='—'?'':W.sst;
+  if(a.status==='fulfilled')env.stale=0;
   renderWx()})()];
  await Promise.allSettled(jobs);
- setSt('最終更新 '+hm(Date.now()));env.stale=0;saveEnv();renderTide();renderWx();
+ if((env.updW||0)>w0){setSt('最終更新 '+hm(Date.now()));env.stale=0;saveEnv()}else setSt('通信できないため、保存済みの情報を表示中');renderTide();renderWx();
 }
 
 /* ---------- 画面切替 ---------- */
@@ -593,7 +596,7 @@ const F=['sp','size','cnt','ts','place','port','wx','temp','wind','wave','sst','
 let formFrom='home',formY=0;
 const backForm=()=>{show(formFrom);if(formFrom==='rec')window.scrollTo(0,formY)};
 function openForm(r,pp){formFrom=document.body.dataset.v==='rec'?'rec':'home';formY=window.scrollY||0;
- cur=r||null;photo=r?r.photo||null:null;orig=origT=null;$('#bOrig').hidden=true;
+ cur=r||null;photo=r?r.photo||null:null;orig=origT=null;$('#bOrig').hidden=true;$('#envNote').textContent=r?'':(env.noteTxt||'');
  const v=r||{ts:Date.now(),species:'',size:'',count:'',place:env.place,port:env.portTxt,wx:env.wx,temp:env.temp,wind:env.windTxt,wave:env.wave,sst:env.sst,tide:env.tideTxt,memo:''};
  $('#f_sp').value=v.species;$('#f_size').value=v.size;$('#f_cnt').value=v.count;$('#f_ts').value=toLocalIn(v.ts);
  $('#f_place').value=v.place||'';$('#f_port').value=v.port||'';$('#f_wx').value=v.wx||'';$('#f_temp').value=v.temp??'';$('#f_wind').value=v.wind||'';
@@ -654,8 +657,8 @@ function openSet(){$('#s_map').checked=cfg.map!==false;$('#s_night').checked=!!c
  show('set')}
 
 /* ---------- イベント ---------- */
-$('#bRef').onclick=refresh;$('#bNew').onclick=async()=>{const p=await pickWho();if(p!==false)openForm(null,p)};document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{const t=b.dataset.t;if(t==='set')openSet();else if(t==='ppl')openPeople();else if(t==='stat'){renderStats();show('stat')}else show(t)});
-$('#bLater').onclick=async()=>{const p=await pickWho();if(p!==false)quick(p)};$('#bBk').onclick=exportJSON;
+$('#bRef').onclick=refresh;$('#bNew').onclick=async()=>{const rp=freshEnv();const p=await pickWho();if(p===false)return;await rp;openForm(null,p)};document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{const t=b.dataset.t;if(t==='set')openSet();else if(t==='ppl')openPeople();else if(t==='stat'){renderStats();show('stat')}else show(t)});
+$('#bLater').onclick=async()=>{const rp=freshEnv();const p=await pickWho();if(p===false)return;await rp;quick(p)};$('#bBk').onclick=exportJSON;
 $('#bNight').onclick=async()=>{cfg.night=!cfg.night;applyUI();await kvSet('cfg',cfg)};
 $('#s_night').onchange=async()=>{cfg.night=$('#s_night').checked;applyUI();await kvSet('cfg',cfg)};
 $('#s_map').onchange=async()=>{cfg.map=$('#s_map').checked;await kvSet('cfg',cfg);locBg(true)};
@@ -665,7 +668,7 @@ $('#tkSave').onclick=async()=>{cfg.tkOpts={};TK.filter(t=>t[0]!=='who').forEach(
 $('#tkRst').onclick=async()=>{delete cfg.tkOpts;await kvSet('cfg',cfg);buildTk();openSet();toast('初期の選択肢に戻しました')};
 $('#tripc').onclick=async ev=>{if(ev.target.closest('#bTripX')){const t0=curTrip();if(t0&&confirm('この釣行の開始を取り消します（釣行を削除します）。よろしいですか？')){await delTrip(t0.id);toast('釣行を取り消しました')}return}
  if(!ev.target.closest('#bTrip'))return;const t=curTrip();
- if(!t){if(!kindSel){$('#mKind').classList.add('on');return}trips.push({id:Date.now(),start:Date.now(),kind:kindSel,place:env.place||'',port:env.portTxt||'',tn:(env.tideShort||'').split('・')[0],tide:env.tideTxt||'',wx:env.wx||'',temp:env.temp||'',wind:env.windTxt||'',wave:env.wave||'',sst:env.sst||'',lat:env.lat,lon:env.lon});kindSel=null;await saveTrips();renderTrip();toast('🎣 釣行を開始しました')}
+ if(!t){if(!kindSel){$('#mKind').classList.add('on');return}const st0=Date.now();await freshEnv(7000);trips.push({id:st0,start:st0,kind:kindSel,place:env.place||'',port:env.portTxt||'',tn:(env.tideShort||'').split('・')[0],tide:env.tideTxt||'',wx:env.wx||'',temp:env.temp||'',wind:env.windTxt||'',wave:env.wave||'',sst:env.sst||'',lat:env.lat,lon:env.lon});kindSel=null;await saveTrips();renderTrip();toast('🎣 釣行を開始しました')}
  else{t.end=Date.now();await saveTrips();const n=records.filter(r=>r.tripId===t.id).length;renderTrip();toast(n?`釣行を終了（釣果 ${n}件）`:'釣行を終了（ボウズ）')}};
 $('#fq_clr').onclick=()=>{$('#q').value='';['#fq_sp','#fq_tn','#fq_pr','#fq_st','#fq_wh','#fq_kd','#fq_tr'].forEach(x=>$(x).value='');drawList()};
 $('#fBack').onclick=backForm;$('#sBack').onclick=()=>show('home');$('#pBack').onclick=()=>show('home');
@@ -704,7 +707,7 @@ $('#pN').onchange=buildPrint;$('#pM').onchange=async()=>{cfg.pm4=$('#pM').value;
 /* ---------- リンクのコピー ---------- */
 document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-copy]');if(!b)return;const u=document.querySelector(b.dataset.copy).href,t=b.textContent;
  try{await navigator.clipboard.writeText(u);b.textContent='✔ コピーしました';setTimeout(()=>b.textContent=t,2000)}catch(x){prompt('このURLをコピーしてください',u)}});
-const VER='2026-11-23a';
+const VER='2026-11-25a';
 /* ---------- ホーム画面アイコン ---------- */
 const ICON_BG=['#1d6f78','#14293a','#c0392b','#f0b429','#2e7d32','#6a4c93'],ICON_SY=['🎣','🐟','🐠','🌊','⚓','🦑','🦈','🛟'];
 let icn={bg:'#1d6f78',sym:'🎣',img:null,name:'釣果ノート'};
@@ -729,7 +732,14 @@ async function checkUpdate(manual){try{const r=await fetch(location.pathname+'?c
 async function doUpdate(){try{await fetch(location.pathname,{cache:'reload'})}catch(x){}location.reload()}
 $('#bUpd').onclick=doUpdate;$('#bChk').onclick=()=>checkUpdate(true);
 /* ---------- 新機能 ---------- */
-let tmr,trips=[],trEd=null,kindSel=null;
+let tmr,trips=[],trEd=null,kindSel=null,rfP=null;
+const refreshOnce=()=>rfP||(rfP=refresh().finally(()=>{rfP=null}));
+async function freshEnv(ms){const w0=env.updW||0,m0=env.updM||0;toast('📡 最新の条件を取得中…');
+ await Promise.race([refreshOnce(),new Promise(r=>setTimeout(r,ms||7000))]);renderTide();
+ const okW=(env.updW||0)>w0,okM=(env.updM||0)>m0,last=Math.max(env.updW||0,env.updM||0,env.t||0),at=last?hm(last)+' 時点':'時刻不明';
+ if(okW&&okM){env.noteTxt='✅ 最新の条件を取得しました（'+hm(Date.now())+'）';$('#toast').style.display='none';return true}
+ env.noteTxt=env.w?'⚠ 通信が弱いため、'+(okW?'水温・波は':'')+'最後に取得した条件（'+at+'）を入力しています':'⚠ 条件を取得できませんでした。手入力してください';
+ toast(env.noteTxt.replace('入力しています','使いました'));return false}
 /* ---------- 釣り人 ---------- */
 const PK=['rod','reel','lt','lw','bait','wt','col'],PEO0=[{name:'とーやん',rod:'ジギンガーＺ',reel:'レガリス23 2500',lt:'PE',lw:'0.8'},{name:'あやーん'},{name:'カッコ'},{name:'ミーカー'},{name:'ツムギ'}];
 const people=()=>cfg.people&&cfg.people.length?cfg.people:PEO0;
@@ -799,7 +809,7 @@ function renderWarn(){const w=env.w,b=$('#warn');if(!w){b.hidden=true;return}con
  if(parseFloat(w.spd)>=ww)m.push(`風 ${w.spd}m/s（基準 ${ww}）`);if(parseFloat(w.wave)>=wv)m.push(`波高 ${w.wave}m（基準 ${wv}）`);
  b.hidden=!m.length;b.innerHTML='⚠ 荒れ注意：'+m.join('／')+'<br><small>無理をせず、安全を最優先にしてください。</small>'}
 function renderBk(){const d=cfg.lastBk?(Date.now()-cfg.lastBk)/864e5:999,b=$('#bkn');b.hidden=!(records.length>0&&d>30);if(!b.hidden)$('#bknT').textContent=cfg.lastBk?`💾 最後のバックアップから${Math.floor(d)}日たっています`:'💾 まだバックアップを書き出していません'}
-const saveEnv=()=>kvSet('envc',{t:Date.now(),lat:env.lat,lon:env.lon,place:env.place,muni:env.muni,w:env.w,hours:env.hours,wx:env.wx,temp:env.temp,windTxt:env.windTxt,wave:env.wave,sst:env.sst,om:env.om}).catch(()=>{});
+const saveEnv=()=>kvSet('envc',{t:Date.now(),lat:env.lat,lon:env.lon,place:env.place,muni:env.muni,w:env.w,hours:env.hours,wx:env.wx,temp:env.temp,windTxt:env.windTxt,wave:env.wave,sst:env.sst,om:env.om,updW:env.updW,updM:env.updM}).catch(()=>{});
 const loadTrips=async()=>{trips=(await kvGet('trips'))||[]},saveTrips=()=>kvSet('trips',trips),curTrip=()=>trips.find(t=>!t.end);
 function renderTrip(){const t=curTrip(),c=$('#tripc');
  c.innerHTML=t?`<h2>釣行中${t.kind?'（'+e(t.kind)+'）':''}</h2><div class="big" style="font-size:19px">${hm(t.start)}〜（${hmm(Date.now()-t.start)}経過）</div><div class="sub">${e(t.place||'')}　釣果 ${records.filter(r=>r.tripId===t.id).length}件</div><button id="bTrip" class="warn" style="width:100%;margin-top:8px">釣行を終了</button><button id="bTripX" class="ghost" style="width:100%;margin-top:8px">開始を取り消す（削除）</button>`
